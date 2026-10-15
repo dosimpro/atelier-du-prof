@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important} body{margin:0} img{max-width:100%}</style>
+<title>Classe du Conte</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: barre de séance (chrono 60 min) en haut, déroulé des phases à gauche, scène de cours au centre */
+:root {
+  --bg:#F2F4EE; --surface:#FFFFFF; --surface-2:#E7EBE1; --ink:#1C261F; --muted:#59665C; --line:#CDD5C7;
+  --forest:#2E6A47; --forest-ink:#FFFFFF; --wood:#A86C14; --wood-soft:#F6E8CC;
+  --ok:#2A7A4B; --ok-soft:#DCEFE2; --bad:#B03E2C; --bad-soft:#F7DED8; --hl:#F2D266; --hl-ink:#1C261F;
+  --f-display:"Caprasimo", "Georgia", serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --base:16px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#101713; --surface:#18221C; --surface-2:#212D26; --ink:#E5ECE4; --muted:#9BA89F; --line:#2F3D34;
+  --forest:#62B98A; --forest-ink:#0C1410; --wood:#E3AA52; --wood-soft:#3A2D16;
+  --ok:#6FCC93; --ok-soft:#1B3326; --bad:#F28C78; --bad-soft:#3B211C; --hl:#C9A43A; --hl-ink:#14100A; color-scheme:dark } }
+:root[data-theme="dark"] {
+  --bg:#101713; --surface:#18221C; --surface-2:#212D26; --ink:#E5ECE4; --muted:#9BA89F; --line:#2F3D34;
+  --forest:#62B98A; --forest-ink:#0C1410; --wood:#E3AA52; --wood-soft:#3A2D16;
+  --ok:#6FCC93; --ok-soft:#1B3326; --bad:#F28C78; --bad-soft:#3B211C; --hl:#C9A43A; --hl-ink:#14100A; color-scheme:dark }
+
+* { box-sizing:border-box }
+body { background:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:var(--base); line-height:1.55 }
+body.big { --base:20px }
+button, select, textarea, input { font:inherit; color:inherit }
+button { cursor:pointer }
+:focus-visible { outline:3px solid var(--wood); outline-offset:2px }
+h1,h2,h3 { text-wrap:balance; margin:0 }
+.wrap { padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)) }
+
+/* Barre de séance */
+.topbar { position:sticky; top:env(safe-area-inset-top,0px); z-index:10; background:var(--surface); border-bottom:1px solid var(--line) }
+.topbar-in { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; padding-block:12px; max-width:1280px; margin:0 auto }
+.brand { display:flex; flex-direction:column; min-width:0; flex:1 1 260px }
+.brand .eyebrow { font-size:.72em; letter-spacing:.08em; text-transform:uppercase; color:var(--muted) }
+.brand h1 { font-family:var(--f-display); font-weight:400; font-size:1.45em; line-height:1.15; color:var(--forest) }
+.clock { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
+.clock .time { font-variant-numeric:tabular-nums; font-weight:700; font-size:1.25em }
+.clock .phase-left { font-variant-numeric:tabular-nums; font-size:.85em; color:var(--muted) }
+.clock .phase-left.over { color:var(--bad); font-weight:700 }
+.btn { border:1px solid var(--line); background:var(--surface-2); padding:.45em .9em; border-radius:8px; font-size:.9em }
+.btn:hover { border-color:var(--forest) }
+.btn.primary { background:var(--forest); color:var(--forest-ink); border-color:var(--forest); font-weight:700 }
+.btn.ghost { background:transparent }
+.btn[aria-pressed="true"] { background:var(--wood-soft); border-color:var(--wood) }
+.score { font-variant-numeric:tabular-nums; font-size:.85em; padding:.35em .7em; border-radius:999px; background:var(--wood-soft); color:var(--ink) }
+.track { display:flex; gap:3px; padding-bottom:10px; max-width:1280px; margin:0 auto }
+.track span { height:6px; border-radius:3px; background:var(--surface-2); position:relative; overflow:hidden }
+.track span i { position:absolute; inset:0 auto 0 0; background:var(--forest); width:0 }
+.track span.cur { outline:2px solid var(--wood); outline-offset:1px }
+
+/* Grille principale */
+.layout { display:grid; grid-template-columns:250px minmax(0,1fr); gap:28px; max-width:1280px; margin:0 auto; padding-block:24px 64px }
+.phases { display:flex; flex-direction:column; gap:4px; position:sticky; top:120px; align-self:start }
+.phases h2 { font-size:.72em; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-family:var(--f-body); margin:0 0 6px 10px }
+.ph { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; text-align:left; border:0; background:transparent; padding:9px 10px; border-radius:8px }
+.ph:hover { background:var(--surface-2) }
+.ph .n { width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font-size:.8em; font-weight:700; background:var(--surface-2); border:1px solid var(--line); font-variant-numeric:tabular-nums }
+.ph .d { font-size:.8em; color:var(--muted); font-variant-numeric:tabular-nums }
+.ph.cur { background:var(--surface) ; box-shadow:0 0 0 1px var(--line) }
+.ph.cur .n { background:var(--forest); color:var(--forest-ink); border-color:var(--forest) }
+.ph.done .n { background:var(--ok-soft); border-color:var(--ok) }
+.library { margin-top:18px; padding:12px; border:1px dashed var(--line); border-radius:10px; font-size:.85em; color:var(--muted) }
+.library b { color:var(--ink) }
+
+main { min-width:0 }
+.stage-head { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 16px; margin-bottom:18px }
+.stage-head h2 { font-family:var(--f-display); font-weight:400; font-size:2em; line-height:1.1 }
+.stage-head .meta { color:var(--muted); font-size:.9em }
+.blocks { display:flex; flex-direction:column; gap:18px }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; min-width:0 }
+.card h3 { font-size:1.05em; margin-bottom:10px }
+.label { display:inline-block; font-size:.7em; letter-spacing:.08em; text-transform:uppercase; color:var(--wood); font-weight:700; margin-bottom:6px }
+.note { background:var(--wood-soft); border:0; font-size:.92em }
+.note .label { color:var(--ink) }
+.support { font-size:1.2em; line-height:1.7; max-width:62ch }
+mark { background:var(--hl); color:var(--hl-ink); padding:0 .2em; border-radius:3px }
+.row { display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+.answer { margin-top:10px; padding:10px 12px; border-radius:8px; background:var(--ok-soft); color:var(--ink) }
+.answer::before { content:"Réponse attendue : "; font-weight:700 }
+.choice { border:1px solid var(--line); background:var(--surface-2); padding:.5em .9em; border-radius:8px; text-align:left }
+.choice.ok { background:var(--ok-soft); border-color:var(--ok) }
+.choice.bad { background:var(--bad-soft); border-color:var(--bad) }
+.fb { font-size:.9em; margin-top:8px; font-weight:700 }
+.fb.ok { color:var(--ok) } .fb.bad { color:var(--bad) }
+
+/* Schéma narratif */
+.schema { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px }
+.schema div { border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--surface-2) }
+.schema div.focus { background:var(--wood-soft); border-color:var(--wood) }
+.schema b { display:block }
+.schema small { color:var(--muted) }
+
+/* Film */
+.film-frame { position:relative; width:100%; max-width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; background:#1d2b22 }
+.film-frame svg { width:100%; height:100%; display:block; transform-origin:50% 60%; animation:kb 9s ease-out both }
+@keyframes kb { from { transform:scale(1.06) } to { transform:scale(1) } }
+@media (prefers-reduced-motion: reduce) { .film-frame svg { animation:none } }
+.caption { margin-top:12px; display:flex; flex-direction:column; gap:6px }
+.moment { align-self:flex-start; font-size:.72em; letter-spacing:.07em; text-transform:uppercase; font-weight:700; padding:.25em .6em; border-radius:999px; background:var(--forest); color:var(--forest-ink) }
+.caption p { margin:0; font-size:1.15em; line-height:1.6 }
+.dots { display:flex; gap:5px }
+.dots i { width:9px; height:9px; border-radius:50%; background:var(--line) }
+.dots i.on { background:var(--forest) }
+
+/* Fixation */
+.fix-rule { font-size:1.1em; margin-bottom:12px }
+.fix-list { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:8px }
+.fix-list button { text-align:left; padding:.7em .9em; border-radius:8px; border:1px solid var(--line); background:var(--surface-2); font-weight:700 }
+.fix-list button:hover { border-color:var(--forest) }
+
+/* Exercices */
+.chips { display:flex; flex-wrap:wrap; gap:8px }
+.chip { border:1px solid var(--line); background:var(--surface-2); padding:.55em .9em; border-radius:8px }
+.chip.on { background:var(--hl); color:var(--hl-ink); border-color:var(--wood) }
+.chip.ok { box-shadow:0 0 0 2px var(--ok) }
+.chip.bad { box-shadow:0 0 0 2px var(--bad) }
+.chip.sel { outline:3px solid var(--forest); outline-offset:1px }
+.fill { display:flex; flex-direction:column; gap:12px }
+.fill p { margin:0; line-height:2 }
+.fill select { padding:.3em .4em; border-radius:6px; border:1px solid var(--line); background:var(--surface-2); max-width:100% }
+.fill select.ok { border-color:var(--ok); background:var(--ok-soft) }
+.fill select.bad { border-color:var(--bad); background:var(--bad-soft) }
+.bins { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; margin-top:14px }
+.bin { border:2px dashed var(--line); border-radius:10px; padding:10px; min-height:110px; display:flex; flex-direction:column; gap:6px; background:transparent; text-align:left }
+.bin:hover { border-color:var(--forest) }
+.bin > b { font-size:.85em }
+.bin .chip { font-size:.88em }
+.intrus { display:flex; flex-direction:column; gap:12px }
+textarea { width:100%; min-height:140px; padding:12px; border-radius:8px; border:1px solid var(--line); background:var(--surface-2); line-height:1.6; resize:vertical }
+.checks { list-style:none; padding:0; margin:12px 0 0; display:grid; gap:6px }
+.checks li { display:flex; gap:8px; align-items:baseline }
+.checks li::before { content:"○"; color:var(--muted); font-weight:700 }
+.checks li.ok::before { content:"✓"; color:var(--ok) }
+.example { margin-top:12px; padding:12px; border-left:4px solid var(--wood); background:var(--wood-soft); border-radius:0 8px 8px 0 }
+
+.pager { display:flex; justify-content:space-between; gap:10px; margin-top:24px; flex-wrap:wrap }
+.speed { display:flex; align-items:center; gap:6px; font-size:.85em; color:var(--muted) }
+.speed input { width:90px }
+.tts-warn { font-size:.85em; color:var(--bad) }
+.answers-hidden .answer { display:none }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns:minmax(0,1fr); gap:16px; padding-block:16px 48px }
+  .phases { position:static; flex-direction:row; overflow-x:auto; padding-bottom:6px }
+  .phases h2, .library { display:none }
+  .ph { grid-template-columns:auto auto; flex:0 0 auto }
+  .ph .d { display:none }
+  .schema, .bins { grid-template-columns:minmax(0,1fr) }
+  .stage-head h2 { font-size:1.6em }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in wrap">
+    <div class="brand">
+      <span class="eyebrow" id="eyebrow"></span>
+      <h1 id="lesson-title"></h1>
+    </div>
+    <div class="clock">
+      <span class="time" id="clock">00:00 / 60:00</span>
+      <span class="phase-left" id="phase-left"></span>
+      <button class="btn primary" id="play">Démarrer le cours</button>
+      <button class="btn ghost" id="reset" title="Remettre le chrono à zéro">Remettre à zéro</button>
+    </div>
+    <div class="row">
+      <span class="score" id="score">Score de la classe : 0 / 0</span>
+      <button class="btn" id="answers" aria-pressed="false">Mode élève (cacher les réponses)</button>
+      <button class="btn" id="big" aria-pressed="false">Projection</button>
+    </div>
+  </div>
+  <div class="track wrap" id="track"></div>
+</header>
+
+<div class="layout wrap">
+  <nav class="phases" id="phases" aria-label="Déroulé de la séance"></nav>
+  <main id="stage"></main>
+</div>
+
+<script>
+/* =========================================================
+   BIBLIOTHÈQUE DE COURS
+   Chaque cours = une liste de phases ; chaque phase = des blocs.
+   Types de blocs : note, support, schema, question, film, fixation,
+   colorier, completer, trier, intrus, production, liens.
+   Pour ajouter un cours, on ajoute un objet dans LESSONS.
+   ========================================================= */
+const LESSONS = [{
+  id: "formules-ouverture",
+  titre: "Les formules d’ouverture",
+  eyebrow: "2AM · Projet 1 « Dire et jouer un conte » · Séquence 1 · Vocabulaire",
+  phases: [
+    { titre: "Mise en situation", duree: 5, blocs: [
+      { type:"note", text:"Rappeler le schéma du conte. Faire répondre deux ou trois élèves à l’oral avant d’afficher la réponse." },
+      { type:"question", q:"Comment appelle-t-on la première partie d’un conte ?", a:"La situation initiale." },
+      { type:"schema" },
+      { type:"question", q:"Citez le titre d’un conte que vous connaissez. Comment commence-t-il ?", a:"Réponses libres : « Il était une fois… », « Il y a très longtemps… »" }
+    ]},
+    { titre: "Écoute : le conte", duree: 7, blocs: [
+      { type:"note", text:"Projeter le film et lancer la lecture. Demander aux élèves de lever la main dès qu’ils entendent l’expression qui ouvre le conte." },
+      { type:"film", titre:"Le bûcheron honnête", scenes:[
+        { m:"Situation initiale", s:"forest", t:"<mark>Il y a longtemps</mark>, dans une forêt, vivait un pauvre bûcheron. Chaque jour, il coupait du bois qu’il vendait au marché." },
+        { m:"Élément perturbateur", s:"fall", t:"Un matin, alors qu’il travaillait au bord de la rivière, sa hache lui glissa des mains et tomba au fond de l’eau." },
+        { m:"Péripétie", s:"sad", t:"Le bûcheron s’assit et pleura : sans sa hache, comment allait-il nourrir sa famille ?" },
+        { m:"Péripétie", s:"gold", t:"Soudain, un génie sortit de l’eau avec une hache en or. « Est-ce la tienne ? » « Non, ce n’est pas la mienne », répondit le bûcheron." },
+        { m:"Péripétie", s:"silver", t:"Le génie plongea de nouveau et rapporta une hache en argent. « Ce n’est pas la mienne non plus », dit l’honnête homme." },
+        { m:"Dénouement", s:"iron", t:"Enfin, il remonta une vieille hache en fer. « Oui, c’est la mienne ! » s’écria le bûcheron, tout heureux." },
+        { m:"Situation finale", s:"end", t:"Pour récompenser son honnêteté, le génie lui offrit les trois haches. Depuis ce jour, le bûcheron vécut heureux avec sa famille." }
+      ]},
+      { type:"question", q:"Par quelle expression le conte commence-t-il ?", a:"« Il y a longtemps »." },
+      { type:"question", q:"Quelle qualité du bûcheron est récompensée ?", choices:["Sa force","Son honnêteté","Sa richesse"], correct:1, a:"Son honnêteté." }
+    ]},
+    { titre: "Observation", duree: 8, blocs: [
+      { type:"support", titre:"Support (manuel p. 13) : Un bûcheron honnête", html:"Il y a longtemps, dans une forêt, un pauvre bûcheron coupait du bois qu’il vendait au marché." },
+      { type:"question", q:"1) Le texte ci-dessus est extrait d’…", choices:["une fable","un conte","une légende"], correct:1, a:"Un conte." },
+      { type:"question", q:"2) Qui est le personnage principal de cette histoire ?", choices:["Le marchand","Le bûcheron","Le génie"], correct:1, a:"Le bûcheron." },
+      { type:"question", q:"3) Que faisait le bûcheron dans la forêt ?", a:"Il coupait du bois qu’il vendait au marché." }
+    ]},
+    { titre: "Analyse", duree: 12, blocs: [
+      { type:"support", titre:"Support", html:"<mark>Il y a longtemps</mark>, dans une forêt, un pauvre bûcheron coupait du bois qu’il vendait au marché." },
+      { type:"question", q:"1) Que représente la première phrase du texte ?", a:"C’est la situation initiale." },
+      { type:"question", q:"2) Par quelle expression est-elle introduite ?", a:"« Il y a longtemps »." },
+      { type:"question", q:"3) Cette expression s’appelle :", choices:["un connecteur d’énumération","une formule d’ouverture","une formule qui introduit la situation finale"], correct:1, a:"Une formule d’ouverture." },
+      { type:"question", q:"4) Par quels autres mots ou expressions peut-on la remplacer ?", a:"Il était une fois, il y a bien longtemps, autrefois, jadis, dans le vieux temps, en des temps très anciens…" },
+      { type:"question", q:"5) Quelle information apportent les formules d’ouverture ?", choices:["Où se passe l’histoire ?","Quand se passe l’histoire ?","Qui raconte l’histoire ?"], correct:1, a:"Elles situent l’histoire dans le temps : elles répondent à la question « Quand ? »." }
+    ]},
+    { titre: "Fixation", duree: 8, blocs: [
+      { type:"fixation", rule:"Pour introduire le conte et situer l’histoire dans le temps, on emploie <b>une formule d’ouverture</b>.",
+        items:["Il était une fois…","Il y a longtemps…","Il y a bien longtemps…","Jadis…","Autrefois…","En des temps anciens…","Dans un passé lointain…","Dans le vieux temps…"] },
+      { type:"note", text:"Faire répéter chaque formule à voix haute (clic sur une formule pour l’écouter), puis faire recopier la règle dans les cahiers." }
+    ]},
+    { titre: "Évaluation", duree: 15, blocs: [
+      { type:"colorier", titre:"Activité 1 : Colorie les formules d’ouverture.",
+        items:[["Il y a bien longtemps",1],["finalement",0],["autrefois",1],["soudain",0],["ainsi",0],["jadis",1],["tout à coup",0],["il y avait une fois",1],["ensuite",0],["dans un passé lointain",1]] },
+      { type:"completer", titre:"Activité 2 : Complète les situations initiales par une formule d’ouverture.",
+        phrases:["___, dans un royaume oublié de tous, vivait un roi juste et bon.",
+                 "___, vivaient deux frères : l’un était riche et l’autre était pauvre.",
+                 "___, une magicienne habitait dans une grande maison.",
+                 "___, une belle fille qui s’appelait Loundja vivait avec ses parents et sa grand-mère dans un petit village."],
+        options:["Il était une fois","Il y a très longtemps","Autrefois","Jadis","Soudain","Enfin","Ensuite"],
+        good:["Il était une fois","Il y a très longtemps","Autrefois","Jadis"] },
+      { type:"trier", titre:"Activité 3 (nouvelle) : Classe chaque expression dans la bonne boîte.",
+        bins:["Formule d’ouverture","Formule de clôture","Connecteur du récit"],
+        items:[["Il était une fois",0],["Ils vécurent heureux pour toujours",1],["Soudain",2],["Jadis",0],["Depuis ce jour",1],["Tout à coup",2],["Autrefois",0],["Et mon conte est fini",1],["Ensuite",2]] },
+      { type:"intrus", titre:"Activité 4 (nouvelle) : Trouve l’intrus dans chaque liste.",
+        rows:[ {items:["Jadis","Autrefois","Soudain","Il était une fois"], i:2, why:"« Soudain » annonce un événement brusque, ce n’est pas une formule d’ouverture."},
+               {items:["Il y a longtemps","Enfin","Dans un passé lointain","En des temps anciens"], i:1, why:"« Enfin » marque la fin d’une suite d’actions."},
+               {items:["Il était une fois","Ils vécurent heureux","Il y a bien longtemps","Jadis"], i:1, why:"« Ils vécurent heureux » est une formule de clôture."} ] }
+    ]},
+    { titre: "Production écrite", duree: 5, blocs: [
+      { type:"production", consigne:"À ton tour, rédige une courte situation initiale du conte « Blanche-Neige et les sept nains » en employant une formule d’ouverture.",
+        exemple:"Il y a bien longtemps, dans un grand palais, vivait une belle fille qui s’appelait Blanche-Neige, car elle était blanche comme la neige. Elle vivait avec son père et sa belle-mère." },
+      { type:"liens", titre:"Pour aller plus loin (à la maison)", items:[
+        ["Écouter des contes lus (France Culture, contes et histoires)","https://www.radiofrance.fr/franceculture/podcasts/serie-contes-et-legendes"],
+        ["Vidéos : « Le bûcheron honnête » (recherche YouTube)","https://www.youtube.com/results?search_query=le+b%C3%BBcheron+honn%C3%AAte+conte"] ] }
+    ]}
+  ]
+}];
+
+/* ============ État ============ */
+const L = LESSONS[0];
+const total = L.phases.reduce((s,p)=>s+p.duree,0);
+const S = { phase:0, running:false, spent:L.phases.map(()=>0), scores:{}, big:false, hide:false, rate:0.9 };
+try { const saved = JSON.parse(localStorage.getItem("classe-conte:"+L.id)||"null"); if (saved) { S.phase = Math.min(saved.phase||0, L.phases.length-1); S.spent = saved.spent?.length===L.phases.length ? saved.spent : S.spent; } } catch(e){}
+function save(){ try { localStorage.setItem("classe-conte:"+L.id, JSON.stringify({phase:S.phase, spent:S.spent})) } catch(e){} }
+
+/* ============ Utilitaires ============ */
+function h(tag, props, ...kids){
+  const e = document.createElement(tag);
+  for (const k in (props||{})) {
+    const v = props[k];
+    if (k==="class") e.className = v;
+    else if (k==="html") e.innerHTML = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => { if (c==null || c===false) return; e.append(c.nodeType ? c : document.createTextNode(c)); });
+  return e;
+}
+const fmt = s => { const a=Math.abs(s); return String(Math.floor(a/60)).padStart(2,"0")+":"+String(a%60).padStart(2,"0"); };
+const strip = s => s.replace(/<[^>]+>/g,"");
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a; }
+
+/* ============ Voix (synthèse vocale du navigateur) ============ */
+const TTS = "speechSynthesis" in window;
+let frVoice = null;
+function pickVoice(){ if(!TTS) return; const v = speechSynthesis.getVoices(); frVoice = v.find(x=>/^fr(-|_)FR/i.test(x.lang)) || v.find(x=>/^fr/i.test(x.lang)) || null; }
+if (TTS) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function speak(text, onend){
+  if (!TTS) { if (onend) setTimeout(onend, Math.max(4000, text.length*60)); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(strip(text));
+  u.lang = "fr-FR"; if (frVoice) u.voice = frVoice; u.rate = S.rate;
+  if (onend) u.onend = onend;
+  speechSynthesis.speak(u);
+}
+function stopSpeak(){ if (TTS) speechSynthesis.cancel(); }
+function listenBtn(text, label){ return h("button",{class:"btn", onclick:()=>speak(text)}, label||"Écouter"); }
+
+/* ============ Score ============ */
+function setScore(key, ok, tot){ S.scores[key] = {ok, tot}; renderScore(); }
+function renderScore(){
+  let o=0,t=0; Object.values(S.scores).forEach(s=>{o+=s.ok;t+=s.tot});
+  document.getElementById("score").textContent = `Score de la classe : ${o} / ${t}`;
+}
+
+/* ============ Illustrations du film (SVG) ============ */
+function trees(){ return [40,130,515,605].map(x=>`<rect x="${x-8}" y="170" width="16" height="95" fill="#6B4423"/><polygon points="${x-48},215 ${x},95 ${x+48},215" fill="#2F5D34"/><polygon points="${x-38},170 ${x},62 ${x+38},170" fill="#3B7342"/>`).join(""); }
+function ground(c){ return `<rect y="255" width="640" height="105" fill="${c||"#5E8C4A"}"/>`; }
+function river(){ return `<path d="M0 285 Q160 270 320 288 T640 282 V340 Q480 352 320 336 T0 342Z" fill="#4A90B8"/><path d="M60 300 q20 -6 40 0 M250 312 q20 -6 40 0 M440 300 q20 -6 40 0" stroke="#D6EEF8" stroke-width="3" fill="none" opacity=".8"/>`; }
+function man(x, mood){
+  const y=150, mouth = mood==="happy" ? `<path d="M${x-9} ${y+16} q9 9 18 0" stroke="#3A2416" stroke-width="2.5" fill="none"/>` : mood==="sad" ? `<path d="M${x-9} ${y+21} q9 -8 18 0" stroke="#3A2416" stroke-width="2.5" fill="none"/>` : `<circle cx="${x}" cy="${y+19}" r="4" fill="#3A2416"/>`;
+  const tear = mood==="sad" ? `<path d="M${x+11} ${y+6} q4 8 0 11 q-4 -3 0 -11Z" fill="#8FD0F0"/>` : "";
+  return `<rect x="${x-16}" y="${y+78}" width="12" height="40" fill="#3B3226"/><rect x="${x+4}" y="${y+78}" width="12" height="40" fill="#3B3226"/>
+  <rect x="${x-24}" y="${y+28}" width="48" height="56" rx="8" fill="#E9E2CF"/><rect x="${x-24}" y="${y+28}" width="14" height="56" fill="#5A3A22"/><rect x="${x+10}" y="${y+28}" width="14" height="56" fill="#5A3A22"/>
+  <circle cx="${x}" cy="${y+8}" r="20" fill="#E8B98A"/><path d="M${x-18} ${y+12} q18 30 36 0 q-4 18 -18 20 q-14 -2 -18 -20Z" fill="#4A3220"/>
+  <ellipse cx="${x}" cy="${y-9}" rx="30" ry="6" fill="#2E2116"/><rect x="${x-17}" y="${y-28}" width="34" height="20" rx="4" fill="#2E2116"/>
+  <circle cx="${x-7}" cy="${y+4}" r="2.5" fill="#1D140C"/><circle cx="${x+7}" cy="${y+4}" r="2.5" fill="#1D140C"/>${mouth}${tear}`;
+}
+function axe(x,y,c,rot){ return `<g transform="translate(${x} ${y}) rotate(${rot||0})"><rect x="-3" y="-10" width="6" height="70" rx="3" fill="#7A4E26"/><path d="M3 -10 h22 q8 12 0 26 h-22Z" fill="${c}" stroke="#00000033"/></g>`; }
+function genie(x){ return `<circle cx="${x}" cy="170" r="85" fill="#BFF0FF" opacity=".25"/><path d="M${x-40} 250 q-10 -90 40 -110 q50 20 40 110 q-40 30 -80 0Z" fill="#7FC8D9"/><circle cx="${x}" cy="125" r="24" fill="#9ADBE8"/><circle cx="${x-8}" cy="122" r="3" fill="#123"/><circle cx="${x+8}" cy="122" r="3" fill="#123"/><path d="M${x-8} 134 q8 6 16 0" stroke="#123" stroke-width="2.5" fill="none"/>`; }
+function logs(){ return [0,1,2].map(i=>`<rect x="${400+i*6}" y="${300-i*18}" width="110" height="18" rx="9" fill="#8A5A2E"/><circle cx="${400+i*6}" cy="${309-i*18}" r="9" fill="#C99A62"/>`).join(""); }
+function house(){ return `<rect x="420" y="170" width="150" height="100" fill="#C9A27A"/><polygon points="405,175 495,105 585,175" fill="#8A3B2A"/><rect x="480" y="210" width="34" height="60" fill="#5A3A22"/><rect x="435" y="195" width="30" height="26" fill="#F6E08A"/>`; }
+function sky(day){ return `<defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${day?"#9BD3F0":"#F5C98B"}"/><stop offset="1" stop-color="${day?"#E4F3E8":"#FBE9C9"}"/></linearGradient></defs><rect width="640" height="360" fill="url(#sk)"/>`; }
+function sceneSVG(k){
+  let b = "";
+  switch(k){
+    case "forest": b = sky(1)+`<circle cx="560" cy="60" r="30" fill="#FFE07A"/>`+ground()+trees()+logs()+man(260,"happy")+axe(300,215,"#9AA4AA",-25); break;
+    case "fall": b = sky(1)+ground()+trees()+river()+man(220,"neutral")+axe(430,262,"#9AA4AA",150)+`<ellipse cx="430" cy="300" rx="40" ry="8" fill="#E9F7FF" opacity=".9"/>`; break;
+    case "sad": b = sky(0)+ground("#55784A")+trees()+river()+man(300,"sad"); break;
+    case "gold": b = sky(1)+ground()+river()+man(180,"neutral")+genie(450)+axe(500,150,"#E8B923",20); break;
+    case "silver": b = sky(1)+ground()+river()+man(180,"neutral")+genie(450)+axe(500,150,"#D7DDE2",20); break;
+    case "iron": b = sky(1)+ground()+river()+man(180,"happy")+genie(450)+axe(500,150,"#6E767C",20); break;
+    case "end": b = sky(0)+`<circle cx="90" cy="70" r="34" fill="#FFD36E"/>`+ground()+house()+man(250,"happy")+axe(320,210,"#E8B923",10)+axe(345,210,"#D7DDE2",10)+axe(370,210,"#6E767C",10); break;
+  }
+  return `<svg viewBox="0 0 640 360" role="img" aria-label="Illustration de la scène" xmlns="http://www.w3.org/2000/svg">${b}</svg>`;
+}
+
+/* ============ Rendu des blocs ============ */
+let filmTimer = null;
+const R = {
+  note: b => h("div",{class:"card note"}, h("span",{class:"label"},"Conseil pour l’enseignant(e)"), h("div",null,b.text)),
+
+  support: b => h("div",{class:"card"}, h("span",{class:"label"}, b.titre),
+    h("p",{class:"support", html:b.html}), h("div",{class:"row"}, listenBtn(b.html, "Écouter le texte"))),
+
+  schema: () => h("div",{class:"card"}, h("span",{class:"label"},"Les moments du conte"),
+    h("div",{class:"schema"},
+      h("div",{class:"focus"}, h("b",null,"1. Situation initiale"), h("small",null,"Quand ? Où ? Qui ? Ouverte par une formule d’ouverture.")),
+      h("div",null, h("b",null,"2. Déroulement"), h("small",null,"Élément perturbateur, péripéties, dénouement.")),
+      h("div",null, h("b",null,"3. Situation finale"), h("small",null,"Souvent fermée par une formule de clôture.")))),
+
+  question: (b,key) => {
+    const card = h("div",{class:"card"});
+    card.append(h("h3",null,b.q));
+    if (b.choices) {
+      const fb = h("div",{class:"fb"});
+      let answered = false;
+      const row = h("div",{class:"row"});
+      b.choices.forEach((c,i)=>{
+        const btn = h("button",{class:"choice", onclick:()=>{
+          if (answered) return; answered = true;
+          const ok = i===b.correct;
+          btn.classList.add(ok?"ok":"bad");
+          if (!ok) row.children[b.correct].classList.add("ok");
+          fb.className = "fb "+(ok?"ok":"bad"); fb.textContent = ok ? "Bravo, c’est juste !" : "Pas tout à fait. La bonne réponse est en vert.";
+          setScore(key, ok?1:0, 1);
+        }}, c);
+        row.append(btn);
+      });
+      card.append(row, fb);
+    }
+    card.append(h("div",{class:"answer"}, b.a));
+    return card;
+  },
+
+  film: b => {
+    let i = 0, auto = false;
+    const frame = h("div",{class:"film-frame"});
+    const moment = h("span",{class:"moment"});
+    const text = h("p");
+    const dots = h("div",{class:"dots"}, b.scenes.map(()=>h("i")));
+    const playBtn = h("button",{class:"btn primary"},"Lire le conte");
+    function show(n){
+      i = Math.max(0, Math.min(b.scenes.length-1, n));
+      const sc = b.scenes[i];
+      frame.innerHTML = sceneSVG(sc.s);
+      moment.textContent = sc.m; text.innerHTML = sc.t;
+      [...dots.children].forEach((d,k)=>d.classList.toggle("on", k===i));
+    }
+    function next(){ if (!auto) return; if (i < b.scenes.length-1) { show(i+1); speak(b.scenes[i].t, next); } else { auto=false; playBtn.textContent="Relire le conte"; } }
+    playBtn.onclick = () => {
+      if (auto) { auto=false; stopSpeak(); playBtn.textContent="Reprendre"; return; }
+      if (playBtn.textContent==="Relire le conte") show(0);
+      auto = true; playBtn.textContent = "Pause";
+      speak(b.scenes[i].t, next);
+    };
+    show(0);
+    return h("div",{class:"card"}, h("span",{class:"label"},"Mini-film narré · "+b.titre), frame,
+      h("div",{class:"caption"}, moment, text),
+      h("div",{class:"row", style:"margin-top:12px; justify-content:space-between"},
+        h("div",{class:"row"},
+          h("button",{class:"btn", onclick:()=>{auto=false; stopSpeak(); show(i-1)}},"‹ Scène précédente"),
+          playBtn,
+          h("button",{class:"btn", onclick:()=>{auto=false; stopSpeak(); show(i+1)}},"Scène suivante ›"),
+          h("button",{class:"btn ghost", onclick:()=>{auto=false; stopSpeak(); show(0); playBtn.textContent="Lire le conte"}},"Recommencer")),
+        dots),
+      TTS ? null : h("p",{class:"tts-warn"},"La lecture à voix haute n’est pas disponible sur ce navigateur : les scènes défilent seules, lisez le texte à la classe."));
+  },
+
+  fixation: b => h("div",{class:"card"}, h("span",{class:"label"},"Je retiens"),
+    h("p",{class:"fix-rule", html:b.rule}),
+    h("div",{class:"fix-list"}, b.items.map(t=>h("button",{onclick:()=>speak(t)}, t))),
+    h("div",{class:"row", style:"margin-top:12px"}, listenBtn(b.items.join(" ; "), "Écouter toutes les formules"))),
+
+  colorier: (b,key) => {
+    const st = new Set();
+    const chips = h("div",{class:"chips"});
+    const fb = h("div",{class:"fb"});
+    b.items.forEach(([t],k)=> chips.append(h("button",{class:"chip", onclick:e=>{ st.has(k)?st.delete(k):st.add(k); e.currentTarget.classList.toggle("on"); [...chips.children].forEach(c=>c.classList.remove("ok","bad")); fb.textContent=""; }}, t)));
+    const check = () => {
+      let ok = 0;
+      b.items.forEach(([,good],k)=>{ const c=chips.children[k]; const right = st.has(k)===!!good; c.classList.toggle("ok", right && st.has(k)); c.classList.toggle("bad", !right); if (right) ok++; });
+      fb.className = "fb "+(ok===b.items.length?"ok":"bad");
+      fb.textContent = ok===b.items.length ? "Parfait : toutes les formules d’ouverture sont coloriées." : `${ok} / ${b.items.length} cases justes. Les erreurs sont entourées en rouge.`;
+      setScore(key, ok, b.items.length);
+    };
+    return h("div",{class:"card"}, h("h3",null,b.titre), chips,
+      h("div",{class:"row", style:"margin-top:12px"}, h("button",{class:"btn primary", onclick:check},"Vérifier")), fb,
+      h("div",{class:"answer"}, b.items.filter(x=>x[1]).map(x=>x[0]).join(" · ")));
+  },
+
+  completer: (b,key) => {
+    const sels = [];
+    const box = h("div",{class:"fill"});
+    b.phrases.forEach((p,k)=>{
+      const [, after] = p.split("___");
+      const s = h("select",{id:`${key}-s${k}`, "aria-label":"Formule pour la phrase "+(k+1)}, h("option",{value:""},"Choisir…"), b.options.map(o=>h("option",{value:o},o)));
+      sels.push(s);
+      box.append(h("p",null, `${k+1}) `, s, after));
+    });
+    const fb = h("div",{class:"fb"});
+    const check = () => {
+      let ok=0; sels.forEach(s=>{ const good=b.good.includes(s.value); s.classList.toggle("ok",good); s.classList.toggle("bad",!good); if(good) ok++; });
+      fb.className="fb "+(ok===sels.length?"ok":"bad");
+      fb.textContent = ok===sels.length ? "Très bien ! Chaque phrase commence par une formule d’ouverture." : `${ok} / ${sels.length}. « Soudain », « Enfin », « Ensuite » ne servent pas à ouvrir un conte.`;
+      setScore(key, ok, sels.length);
+    };
+    return h("div",{class:"card"}, h("h3",null,b.titre), box,
+      h("div",{class:"row", style:"margin-top:12px"}, h("button",{class:"btn primary", onclick:check},"Vérifier"), listenBtn(b.phrases.map((p,k)=>p.replace("___", sels[k]?.value||"…")).join(" "), "Écouter mes phrases")), fb,
+      h("div",{class:"answer"}, "Plusieurs réponses possibles : Il était une fois, Il y a très longtemps, Autrefois, Jadis."));
+  },
+
+  trier: (b,key) => {
+    let sel = null;
+    const where = new Map();
+    const pool = h("div",{class:"chips"});
+    const bins = h("div",{class:"bins"});
+    const fb = h("div",{class:"fb"});
+    const chipEls = shuffle(b.items.map((it,k)=>[it,k])).map(([it,k])=>{
+      const c = h("button",{class:"chip", "data-k":k, onclick:e=>{ e.stopPropagation(); [...document.querySelectorAll(".chip.sel")].forEach(x=>x.classList.remove("sel")); sel = c; c.classList.add("sel"); }}, it[0]);
+      return c;
+    });
+    chipEls.forEach(c=>pool.append(c));
+    b.bins.forEach((name,bi)=>{
+      const bin = h("button",{class:"bin", onclick:()=>{ if(!sel) return; bin.append(sel); where.set(+sel.dataset.k, bi); sel.classList.remove("sel","ok","bad"); sel=null; fb.textContent=""; }}, h("b",null,name));
+      bins.append(bin);
+    });
+    const check = () => {
+      let ok=0;
+      chipEls.forEach(c=>{ const k=+c.dataset.k; const right = where.get(k)===b.items[k][1]; c.classList.toggle("ok", right); c.classList.toggle("bad", where.has(k) && !right); if(right) ok++; });
+      fb.className="fb "+(ok===b.items.length?"ok":"bad");
+      fb.textContent = ok===b.items.length ? "Tout est bien classé !" : `${ok} / ${b.items.length} bien classées.`;
+      setScore(key, ok, b.items.length);
+    };
+    return h("div",{class:"card"}, h("h3",null,b.titre),
+      h("p",{style:"margin:0 0 10px; color:var(--muted); font-size:.9em"},"Touchez une expression, puis la boîte où elle va."),
+      pool, bins,
+      h("div",{class:"row", style:"margin-top:12px"}, h("button",{class:"btn primary", onclick:check},"Vérifier")), fb,
+      h("div",{class:"answer"}, b.bins.map((n,bi)=>n+" : "+b.items.filter(x=>x[1]===bi).map(x=>x[0]).join(", ")).join(" | ")));
+  },
+
+  intrus: (b,key) => {
+    const res = {};
+    const wrap = h("div",{class:"intrus"});
+    b.rows.forEach((r,ri)=>{
+      const fb = h("div",{class:"fb"});
+      const row = h("div",{class:"chips"});
+      r.items.forEach((t,i)=> row.append(h("button",{class:"chip", onclick:e=>{
+        if (ri in res) return;
+        const ok = i===r.i; res[ri]=ok;
+        e.currentTarget.classList.add(ok?"ok":"bad"); row.children[r.i].classList.add("on");
+        fb.className="fb "+(ok?"ok":"bad"); fb.textContent=(ok?"Oui ! ":"Non. ")+r.why;
+        setScore(key, Object.values(res).filter(Boolean).length, b.rows.length);
+      }}, t)));
+      wrap.append(h("div",null,row,fb));
+    });
+    return h("div",{class:"card"}, h("h3",null,b.titre), wrap);
+  },
+
+  production: b => {
+    const ta = h("textarea",{id:"prod-text", placeholder:"Il était une fois…"});
+    const checks = [
+      ["J’ai commencé par une formule d’ouverture", t=>/^\s*(il était une fois|il y avait une fois|il y a (bien |très )?longtemps|autrefois|jadis|dans un passé lointain|en des temps (très )?anciens|dans le vieux temps)/i.test(t)],
+      ["J’ai présenté le personnage (Blanche-Neige)", t=>/blanche[\s-]?neige/i.test(t)],
+      ["J’ai dit où se passe l’histoire", t=>/\b(dans|au|à)\s+(un|une|le|la|l’|l')?\s*(grand |petit |beau |lointain )?(palais|château|royaume|forêt|village|pays|maison|ville)/i.test(t)],
+      ["J’ai employé l’imparfait (vivait, était, s’appelait…)", t=>/\b\w+(ait|aient)\b/i.test(t)],
+      ["J’ai écrit au moins deux phrases", t=>(t.match(/[.!?](\s|$)/g)||[]).length>=2]
+    ];
+    const list = h("ul",{class:"checks"}, checks.map(c=>h("li",null,c[0])));
+    ta.addEventListener("input", ()=>{ checks.forEach((c,i)=>list.children[i].classList.toggle("ok", c[1](ta.value))); });
+    const ex = h("div",{class:"example", hidden:""}, h("b",null,"Exemple à titre indicatif : "), b.exemple);
+    return h("div",{class:"card"}, h("h3",null,b.consigne), ta, list,
+      h("div",{class:"row", style:"margin-top:12px"},
+        h("button",{class:"btn", onclick:()=>speak(ta.value||"Écris d’abord ton texte.")},"Écouter mon texte"),
+        h("button",{class:"btn", onclick:()=>{ ex.hidden=!ex.hidden }},"Afficher / cacher l’exemple")), ex);
+  },
+
+  liens: b => h("div",{class:"card"}, h("span",{class:"label"}, b.titre),
+    h("ul",{style:"margin:0; padding-left:1.2em"}, b.items.map(([t,u])=>h("li",null,h("a",{href:u, target:"_blank", rel:"noopener", style:"color:var(--forest)"},t)))))
+};
+
+/* ============ Rendu de la page ============ */
+function renderNav(){
+  const nav = document.getElementById("phases");
+  nav.innerHTML = "";
+  nav.append(h("h2",null,"Déroulé · "+total+" min"));
+  L.phases.forEach((p,i)=> nav.append(h("button",{class:"ph"+(i===S.phase?" cur":"")+(i<S.phase?" done":""), onclick:()=>go(i)},
+    h("span",{class:"n"}, i+1), h("span",null,p.titre), h("span",{class:"d"}, p.duree+" min"))));
+  nav.append(h("div",{class:"library", html:"<b>Bibliothèque de cours</b><br>Ce cours : formules d’ouverture.<br>Pour ajouter un cours, envoyez à Claude les photos de la fiche : il sera ajouté ici avec ses propres exercices, son conte narré et son chrono."}));
+  const tr = document.getElementById("track");
+  tr.innerHTML = "";
+  L.phases.forEach((p,i)=> tr.append(h("span",{style:`flex:${p.duree}`, class:i===S.phase?"cur":"", title:p.titre}, h("i",{style:`width:${Math.min(100, S.spent[i]/(p.duree*60)*100)}%`}))));
+}
+function renderStage(){
+  stopSpeak();
+  const p = L.phases[S.phase];
+  const st = document.getElementById("stage");
+  st.innerHTML = "";
+  st.append(h("div",{class:"stage-head"},
+    h("h2",null,p.titre),
+    h("div",{class:"row"},
+      h("span",{class:"meta"},`Étape ${S.phase+1} sur ${L.phases.length} · ${p.duree} min prévues`),
+      TTS ? h("label",{class:"speed", for:"rate"},"Vitesse de la voix", h("input",{id:"rate", type:"range", min:"0.6", max:"1.2", step:"0.1", value:String(S.rate), oninput:e=>{S.rate=+e.target.value}})) : null)));
+  const blocks = h("div",{class:"blocks"});
+  p.blocs.forEach((b,k)=> blocks.append(R[b.type](b, `p${S.phase}b${k}`)));
+  st.append(blocks);
+  st.append(h("div",{class:"pager"},
+    S.phase>0 ? h("button",{class:"btn", onclick:()=>go(S.phase-1)},"‹ "+L.phases[S.phase-1].titre) : h("span"),
+    S.phase<L.phases.length-1 ? h("button",{class:"btn primary", onclick:()=>go(S.phase+1)}, L.phases[S.phase+1].titre+" ›") : h("span",{class:"meta"},"Fin de la séance")));
+}
+function go(i){ S.phase=i; save(); renderNav(); renderStage(); renderClock(); window.scrollTo({top:0, behavior:"smooth"}); }
+function renderClock(){
+  const el = S.spent.reduce((a,b)=>a+b,0);
+  document.getElementById("clock").textContent = `${fmt(el)} / ${fmt(total*60)}`;
+  const left = L.phases[S.phase].duree*60 - S.spent[S.phase];
+  const pl = document.getElementById("phase-left");
+  pl.textContent = left>=0 ? `Étape : encore ${fmt(left)}` : `Étape : dépassée de ${fmt(left)}`;
+  pl.classList.toggle("over", left<0);
+  [...document.querySelectorAll("#track span i")].forEach((x,i)=> x.style.width = Math.min(100, S.spent[i]/(L.phases[i].duree*60)*100)+"%");
+}
+
+document.getElementById("lesson-title").textContent = L.titre;
+document.getElementById("eyebrow").textContent = L.eyebrow;
+const playB = document.getElementById("play");
+playB.onclick = () => { S.running=!S.running; playB.textContent = S.running ? "Pause" : (S.spent.some(Boolean)?"Reprendre":"Démarrer le cours"); };
+document.getElementById("reset").onclick = () => { S.spent = S.spent.map(()=>0); S.running=false; playB.textContent="Démarrer le cours"; save(); renderClock(); };
+document.getElementById("big").onclick = e => { S.big=!S.big; document.body.classList.toggle("big",S.big); e.currentTarget.setAttribute("aria-pressed",S.big); };
+document.getElementById("answers").onclick = e => { S.hide=!S.hide; document.body.classList.toggle("answers-hidden",S.hide); e.currentTarget.setAttribute("aria-pressed",S.hide); };
+setInterval(()=>{ if(!S.running) return; S.spent[S.phase]++; renderClock(); if (S.spent[S.phase]%10===0) save(); }, 1000);
+if (S.spent.some(Boolean)) playB.textContent = "Reprendre";
+renderNav(); renderStage(); renderClock(); renderScore();
+</script>
+</body>
+</html>
