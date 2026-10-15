@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>[hidden]{display:none!important} body{margin:0} img{max-width:100%}</style>
-<title>Classe du Conte</title>
+<title>L’Atelier du Prof</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
@@ -198,6 +198,51 @@ textarea { width:100%; min-height:140px; padding:12px; border-radius:8px; border
 .doc-render td, .doc-render th { border:1px solid var(--line); padding:4px 8px }
 .msg { color:var(--muted); padding:16px; text-align:center }
 .foot { max-width:1280px; margin:0 auto; padding-block:8px 32px; color:var(--muted); font-size:.8em }
+
+/* v1.2 : filtres, durée, impression */
+.sel { padding:.35em .5em; border-radius:8px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink) }
+.filters { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:20px }
+.filters label { display:flex; flex-direction:column; gap:4px; font-size:.8em; color:var(--muted); font-weight:700 }
+.filters input[type=search] { padding:.4em .6em; border-radius:8px; border:1px solid var(--line); background:var(--surface-2); min-width:0; width:220px; max-width:100% }
+.group { margin-bottom:28px }
+.group > h3 { font-size:.78em; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:0 0 4px }
+.group > h4 { font-family:var(--f-display); font-weight:400; font-size:1.3em; margin:0 0 12px; color:var(--forest) }
+.tagline { display:flex; flex-wrap:wrap; gap:6px }
+.tag { font-size:.75em; padding:.2em .55em; border-radius:999px; background:var(--surface-2); border:1px solid var(--line) }
+.dlg { border:1px solid var(--line); border-radius:14px; padding:0; background:var(--surface); color:var(--ink); width:min(520px, calc(100vw - 32px)) }
+.dlg::backdrop { background:rgba(0,0,0,.45) }
+.dlg-in { display:flex; flex-direction:column; gap:12px; padding:22px }
+.dlg-in h2 { font-family:var(--f-display); font-weight:400; font-size:1.5em }
+.dlg-sub { margin:0; color:var(--muted); font-size:.9em }
+.fld { display:flex; flex-direction:column; gap:4px; font-weight:700; font-size:.9em }
+.fld input { font-weight:400; padding:.5em .6em; border-radius:8px; border:1px solid var(--line); background:var(--surface-2) }
+.dlg-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px }
+.dlg-foot { display:flex; justify-content:flex-end }
+.photo-view { max-width:100%; height:auto; border-radius:6px; background:#fff }
+#print-area { display:none }
+@media print {
+  @page { size:A4; margin:14mm }
+  body > *:not(#print-area) { display:none !important }
+  #print-area { display:block !important; color:#000; background:#fff; font-family:var(--f-body); font-size:11pt; line-height:1.45 }
+  body { background:#fff !important }
+}
+.pr h1 { font-family:var(--f-display); font-weight:400; font-size:18pt; margin:0 0 4mm; color:#000 }
+.pr h2 { font-size:12.5pt; margin:5mm 0 2mm; border-bottom:1px solid #000; padding-bottom:1mm }
+.pr table { width:100%; border-collapse:collapse; margin-bottom:4mm }
+.pr th, .pr td { border:1px solid #000; padding:2mm 2.5mm; vertical-align:top; text-align:left }
+.pr th { background:#eee; width:30% }
+.pr .dt th { width:auto }
+.pr .dt td:nth-child(2) { white-space:nowrap }
+.pr .ident { display:flex; gap:8mm; margin-bottom:4mm }
+.pr .box { border:1px solid #000; padding:3mm; margin:2mm 0 3mm }
+.pr .q { margin:2.5mm 0 1mm; font-weight:700 }
+.pr .ln { border-bottom:1px dotted #000; height:7mm }
+.pr .ans { font-style:italic; margin:1mm 0 2mm 4mm }
+.pr .cells { display:flex; flex-wrap:wrap; gap:2mm }
+.pr .cells span { border:1px solid #000; padding:1mm 2.5mm }
+.pr .cells span.good { background:#ddd; font-weight:700 }
+.pr .blk { break-inside:avoid }
+.pr .foot-pr { margin-top:6mm; font-size:8.5pt; color:#444 }
 @media (max-width: 860px) {
   .topbar { position:static }
   .doc-row { grid-template-columns:auto minmax(0,1fr) }
@@ -211,8 +256,8 @@ textarea { width:100%; min-height:140px; padding:12px; border-radius:8px; border
 <header class="topbar">
   <div class="topbar-in wrap">
     <div class="brand">
-      <span class="eyebrow">Cours de français interactifs</span>
-      <h1>Classe du Conte</h1>
+      <span class="eyebrow">L’assistant de l’enseignant de français</span>
+      <h1>L’Atelier du Prof</h1>
     </div>
     <nav class="tabs" aria-label="Sections">
       <button class="tab" data-go="">Cours</button>
@@ -233,8 +278,13 @@ textarea { width:100%; min-height:140px; padding:12px; border-radius:8px; border
         <button class="btn ghost" id="reset" title="Remettre le chrono à zéro">Remettre à zéro</button>
       </div>
       <div class="row">
-        <span class="score" id="score">Score de la classe : 0 / 0</span>
-        <button class="btn" id="answers" aria-pressed="false">Mode élève (cacher les réponses)</button>
+        <label class="speed" for="duree-select">Durée
+          <select id="duree-select" class="sel">
+            <option value="45">45 min</option><option value="60">1 h</option><option value="90">1 h 30</option><option value="120">2 h</option>
+          </select>
+        </label>
+        <button class="btn" id="answers" aria-pressed="false" title="Pour projeter sans montrer les réponses">Cacher les réponses</button>
+        <button class="btn" id="print-open">Imprimer…</button>
       </div>
     </div>
     <div class="track wrap" id="track"></div>
@@ -247,25 +297,41 @@ textarea { width:100%; min-height:140px; padding:12px; border-radius:8px; border
   <nav class="phases" id="phases" aria-label="Déroulé de la séance"></nav>
   <main id="stage"></main>
 </div>
-<footer class="foot wrap">Classe du Conte · application version <span id="ver"></span></footer>
+<footer class="foot wrap">L’Atelier du Prof · application version <span id="ver"></span></footer>
+
+<dialog id="print-dlg" class="dlg" aria-labelledby="print-title">
+  <form method="dialog" class="dlg-in" id="print-form">
+    <h2 id="print-title">Imprimer ce cours</h2>
+    <p class="dlg-sub">Votre nom et votre établissement apparaissent sur la fiche pédagogique. Ils restent sur cet appareil.</p>
+    <label class="fld" for="pf-nom">Enseignant(e)<input id="pf-nom" type="text" autocomplete="name" placeholder="Ex. : Mme Boukelkha"></label>
+    <label class="fld" for="pf-etab">Établissement<input id="pf-etab" type="text" placeholder="Ex. : CEM Rahou Mohamed"></label>
+    <div class="dlg-actions">
+      <button class="btn primary" type="button" data-print="peda">Fiche pédagogique</button>
+      <button class="btn primary" type="button" data-print="eleve">Fiche élève</button>
+      <button class="btn primary" type="button" data-print="corrige">Corrigé</button>
+    </div>
+    <div class="dlg-foot"><button class="btn ghost" value="close">Fermer</button></div>
+  </form>
+</dialog>
+<div id="print-area"></div>
 
 <script src="cours/catalogue.js"></script>
 <script>
 /* =========================================================
-   CLASSE DU CONTE : le CODE de l'application.
+   L’ATELIER DU PROF : le CODE de l'application.
    Version de l'application (à changer à chaque publication du code,
    voir CHANGELOG.md). Les cours ne sont PAS ici : ils sont dans
    cours/<id>.js et listés dans cours/catalogue.js.
    Types de blocs d'un cours : note, support, schema, question, film,
    fixation, colorier, completer, trier, intrus, production, liens.
    ========================================================= */
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.2.0";
 window.COURS = window.COURS || [];
 
 /* ============ État ============ */
 let L = null, S = null, total = 0;
 const PREF = { big:false, hide:false, rate:0.9 };
-function save(){ if (!L || !S) return; try { localStorage.setItem("classe-conte:"+L.id, JSON.stringify({phase:S.phase, spent:S.spent})) } catch(e){} }
+function save(){ if (!L || !S) return; try { localStorage.setItem("classe-conte:"+L.id, JSON.stringify({phase:S.phase, spent:S.spent, total:S.total})) } catch(e){} }
 function readSaved(id){ try { return JSON.parse(localStorage.getItem("classe-conte:"+id)||"null") } catch(e){ return null } }
 
 /* ============ Utilitaires ============ */
@@ -305,7 +371,7 @@ function listenBtn(text, label){ return h("button",{class:"btn", onclick:()=>spe
 function setScore(key, ok, tot){ S.scores[key] = {ok, tot}; renderScore(); }
 function renderScore(){
   let o=0,t=0; Object.values(S.scores).forEach(s=>{o+=s.ok;t+=s.tot});
-  document.getElementById("score").textContent = `Score de la classe : ${o} / ${t}`;
+  const el = document.getElementById("score"); if (el) el.textContent = `${o} / ${t}`;
 }
 
 /* ============ Illustrations du film (SVG) ============ */
@@ -530,10 +596,10 @@ function renderNav(){
   nav.innerHTML = "";
   nav.append(h("h2",null,"Déroulé · "+total+" min"));
   L.phases.forEach((p,i)=> nav.append(h("button",{class:"ph"+(i===S.phase?" cur":"")+(i<S.phase?" done":""), onclick:()=>go(i)},
-    h("span",{class:"n"}, i+1), h("span",null,p.titre), h("span",{class:"d"}, p.duree+" min"))));
+    h("span",{class:"n"}, i+1), h("span",null,p.titre), h("span",{class:"d"}, S.durees[i]+" min"))));
   const tr = document.getElementById("track");
   tr.innerHTML = "";
-  L.phases.forEach((p,i)=> tr.append(h("span",{style:`flex:${p.duree}`, class:i===S.phase?"cur":"", title:p.titre}, h("i",{style:`width:${Math.min(100, S.spent[i]/(p.duree*60)*100)}%`}))));
+  L.phases.forEach((p,i)=> tr.append(h("span",{style:`flex:${S.durees[i]}`, class:i===S.phase?"cur":"", title:p.titre}, h("i",{style:`width:${Math.min(100, S.spent[i]/(S.durees[i]*60)*100)}%`}))));
 }
 function renderStage(){
   stopSpeak();
@@ -543,7 +609,7 @@ function renderStage(){
   st.append(h("div",{class:"stage-head"},
     h("h2",null,p.titre),
     h("div",{class:"row"},
-      h("span",{class:"meta"},`Étape ${S.phase+1} sur ${L.phases.length} · ${p.duree} min prévues`),
+      h("span",{class:"meta"},`Étape ${S.phase+1} sur ${L.phases.length} · ${S.durees[S.phase]} min prévues`),
       TTS ? h("label",{class:"speed", for:"rate"},"Vitesse de la voix", h("input",{id:"rate", type:"range", min:"0.6", max:"1.2", step:"0.1", value:String(PREF.rate), oninput:e=>{PREF.rate=+e.target.value}})) : null)));
   const blocks = h("div",{class:"blocks"});
   p.blocs.forEach((b,k)=> blocks.append(R[b.type] ? R[b.type](b, `p${S.phase}b${k}`) : h("div",{class:"card"},"Bloc inconnu : "+b.type)));
@@ -557,11 +623,11 @@ function renderClock(){
   if (!S) return;
   const el = S.spent.reduce((a,b)=>a+b,0);
   document.getElementById("clock").textContent = `${fmt(el)} / ${fmt(total*60)}`;
-  const left = L.phases[S.phase].duree*60 - S.spent[S.phase];
+  const left = S.durees[S.phase]*60 - S.spent[S.phase];
   const pl = document.getElementById("phase-left");
   pl.textContent = left>=0 ? `Étape : encore ${fmt(left)}` : `Étape : dépassée de ${fmt(left)}`;
   pl.classList.toggle("over", left<0);
-  [...document.querySelectorAll("#track span i")].forEach((x,i)=> x.style.width = Math.min(100, S.spent[i]/(L.phases[i].duree*60)*100)+"%");
+  [...document.querySelectorAll("#track span i")].forEach((x,i)=> x.style.width = Math.min(100, S.spent[i]/(S.durees[i]*60)*100)+"%");
 }
 const playB = document.getElementById("play");
 function playLabel(){ playB.textContent = S.running ? "Pause" : (S.spent.some(Boolean) ? "Reprendre" : "Démarrer le cours"); }
@@ -570,21 +636,136 @@ function openLesson(id){
   if (!c) { location.hash = ""; return; }
   if (L && L.id !== id) { save(); }
   if (!L || L.id !== id) {
-    L = c; total = L.phases.reduce((s,p)=>s+p.duree,0);
+    L = c;
     S = { phase:0, running:false, spent:L.phases.map(()=>0), scores:{} };
     const saved = readSaved(L.id);
     if (saved) { S.phase = Math.min(saved.phase||0, L.phases.length-1); if (saved.spent?.length===L.phases.length) S.spent = saved.spent; }
+    setDuree(saved?.total || baseTotal(L));
   }
+  const dsel = document.getElementById("duree-select");
+  if (![...dsel.options].some(o=>o.value===String(total))) dsel.append(h("option",{value:String(total)}, total+" min"));
+  dsel.value = String(total);
   document.getElementById("lesson-title").textContent = L.titre;
   document.getElementById("eyebrow").textContent = L.eyebrow || L.niveau || "";
   showView("lesson");
   renderNav(); renderStage(); renderClock(); renderScore(); playLabel();
 }
+/* Durée de séance modifiable : les étapes gardent leurs proportions */
+const baseTotal = c => c.phases.reduce((s,p)=>s+p.duree,0);
+function scaleDurees(phases, T){
+  const B = phases.reduce((s,p)=>s+p.duree,0);
+  const raw = phases.map(p=>p.duree*T/B);
+  const out = raw.map(x=>Math.max(1, Math.floor(x)));
+  let rest = T - out.reduce((a,b)=>a+b,0);
+  const order = raw.map((x,i)=>[x-Math.floor(x),i]).sort((a,b)=>b[0]-a[0]);
+  for (let k=0; rest>0; k=(k+1)%order.length) { out[order[k][1]]++; rest--; }
+  return out;
+}
+function setDuree(T){ total = T; S.total = T; S.durees = scaleDurees(L.phases, T); }
+document.getElementById("duree-select").onchange = e => { setDuree(+e.target.value); save(); renderNav(); renderStage(); renderClock(); };
 playB.onclick = () => { S.running = !S.running; playLabel(); };
 document.getElementById("reset").onclick = () => { S.spent = S.spent.map(()=>0); S.running=false; playLabel(); save(); renderClock(); renderNav(); };
 document.getElementById("answers").onclick = e => { PREF.hide=!PREF.hide; document.body.classList.toggle("answers-hidden",PREF.hide); e.currentTarget.setAttribute("aria-pressed",PREF.hide); };
 document.getElementById("big").onclick = e => { PREF.big=!PREF.big; document.body.classList.toggle("big",PREF.big); e.currentTarget.setAttribute("aria-pressed",PREF.big); measure(); };
 setInterval(()=>{ if(!S || !S.running) return; S.spent[S.phase]++; renderClock(); if (S.spent[S.phase]%10===0) save(); }, 1000);
+
+/* ============ Impression : fiche pédagogique, fiche élève, corrigé ============ */
+const PROF = { nom:"", etab:"" };
+try { Object.assign(PROF, JSON.parse(localStorage.getItem("atelier:prof")||"{}")); } catch(e){}
+const dlg = document.getElementById("print-dlg");
+document.getElementById("print-open").onclick = () => {
+  document.getElementById("pf-nom").value = PROF.nom; document.getElementById("pf-etab").value = PROF.etab;
+  if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open","");
+};
+dlg.querySelectorAll("[data-print]").forEach(b => b.onclick = () => {
+  PROF.nom = document.getElementById("pf-nom").value.trim();
+  PROF.etab = document.getElementById("pf-etab").value.trim();
+  try { localStorage.setItem("atelier:prof", JSON.stringify(PROF)); } catch(e){}
+  dlg.close ? dlg.close() : dlg.removeAttribute("open");
+  printDoc(b.dataset.print);
+});
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const plain = s => esc(strip(String(s ?? "")));
+const lines = n => '<div class="ln"></div>'.repeat(n);
+const dureeTxt = m => m>=60 ? `${Math.floor(m/60)} h${m%60 ? " "+String(m%60).padStart(2,"0") : ""}` : `${m} min`;
+
+function fichePeda(){
+  const f = L.fiche || {};
+  const row = (k,v) => v ? `<tr><th>${k}</th><td>${v}</td></tr>` : "";
+  const obj = (f.objectifs||[]).length ? "Amener l’apprenant à :<ul>"+f.objectifs.map(o=>`<li>${esc(o)}</li>`).join("")+"</ul>" : "";
+  const der = L.phases.map((p,i)=>{
+    const d = (f.deroulement||[])[i] || {};
+    const auto = p.blocs.filter(b=>b.type==="question").map(b=>"« "+plain(b.q)+" »").join("<br>");
+    return `<tr><td><b>${esc(p.titre)}</b></td><td>${S.durees[i]} min</td><td>${esc(d.prof) || auto || "—"}</td><td>${esc(d.eleve) || "—"}</td></tr>`;
+  }).join("");
+  return `<div class="pr">
+    <h1>Fiche pédagogique</h1>
+    <table>
+      ${row("Enseignant(e)", esc(PROF.nom) || "………………………………")}
+      ${row("Établissement", esc(PROF.etab) || "………………………………")}
+      ${row("Niveau", esc(L.niveau))}
+      ${row("Projet", esc(L.projet))}
+      ${row("Tâche", esc(f.tache))}
+      ${row("Séquence", esc(L.sequence))}
+      ${row("Activité", esc(L.activite))}
+      ${row("Thème", esc(f.theme || L.titre))}
+      ${row("Titre du support", esc(f.titre))}
+      ${row("Objectifs", obj)}
+      ${row("Support", esc(f.support))}
+      ${row("Matériel", esc(f.materiel))}
+      ${row("Durée", dureeTxt(total))}
+    </table>
+    <h2>Déroulement de la séance</h2>
+    <table class="dt"><thead><tr><th>Étape</th><th>Durée</th><th>Activités de l’enseignant(e)</th><th>Activités des apprenants</th></tr></thead><tbody>${der}</tbody></table>
+    <p class="foot-pr">Préparé avec L’Atelier du Prof · ${new Date().toLocaleDateString("fr-FR")}</p>
+  </div>`;
+}
+
+function printBlock(b, ans){
+  switch(b.type){
+    case "support": return `<div class="blk"><div class="box">${plain(b.html)}</div></div>`;
+    case "question": {
+      let s = `<div class="blk"><p class="q">${plain(b.q)}</p>`;
+      if (b.choices) s += `<div class="cells">${b.choices.map((c,i)=>`<span class="${ans && i===b.correct ? "good" : ""}">☐ ${esc(c)}</span>`).join("")}</div>`;
+      s += ans ? `<p class="ans">${plain(b.a)}</p>` : (b.choices ? "" : lines(2));
+      return s + "</div>";
+    }
+    case "fixation": return `<div class="blk"><div class="box"><b>Je retiens :</b> ${plain(b.rule)}<br>${b.items.map(esc).join(" · ")}</div></div>`;
+    case "colorier": return `<div class="blk"><p class="q">${plain(b.titre)}</p><div class="cells">${b.items.map(([t,g])=>`<span class="${ans && g ? "good" : ""}">${esc(t)}</span>`).join("")}</div></div>`;
+    case "completer": return `<div class="blk"><p class="q">${plain(b.titre)}</p>`
+      + (ans ? "" : `<p><i>Mots possibles :</i> ${b.options.map(esc).join(" / ")}</p>`)
+      + b.phrases.map((p,k)=>`<p>${k+1}) ${esc(p).replace("___", ans ? `<b>${esc(b.good[k % b.good.length])}</b>` : "……………………")}</p>`).join("")
+      + (ans ? `<p class="ans">Toute formule d’ouverture est acceptée : ${b.good.map(esc).join(", ")}.</p>` : "") + "</div>";
+    case "trier": {
+      const rowsN = Math.max(...b.bins.map((_,bi)=>b.items.filter(x=>x[1]===bi).length));
+      let t = `<div class="blk"><p class="q">${plain(b.titre)}</p>` + (ans ? "" : `<p><i>Expressions :</i> ${b.items.map(x=>esc(x[0])).join(" · ")}</p>`);
+      t += `<table class="dt"><thead><tr>${b.bins.map(n=>`<th>${esc(n)}</th>`).join("")}</tr></thead><tbody>`;
+      for (let r=0; r<rowsN; r++) t += "<tr>" + b.bins.map((_,bi)=>{ const it = b.items.filter(x=>x[1]===bi)[r]; return `<td>${ans && it ? esc(it[0]) : "&nbsp;"}</td>`; }).join("") + "</tr>";
+      return t + "</tbody></table></div>";
+    }
+    case "intrus": return `<div class="blk"><p class="q">${plain(b.titre)}</p>` + b.rows.map(r=>`<div class="cells" style="margin-bottom:2mm">${r.items.map((t,i)=>`<span class="${ans && i===r.i ? "good" : ""}">${esc(t)}</span>`).join("")}</div>${ans ? `<p class="ans">${esc(r.why)}</p>` : ""}`).join("") + "</div>";
+    case "production": return `<div class="blk"><p class="q">${plain(b.consigne)}</p>${ans ? `<p class="ans">Exemple : ${esc(b.exemple)}</p>` : lines(7)}</div>`;
+    default: return "";
+  }
+}
+function ficheEleve(ans){
+  const PRINTABLE = ["support","question","fixation","colorier","completer","trier","intrus","production"];
+  const parts = L.phases.map(p=>{
+    const bl = p.blocs.filter(b=>PRINTABLE.includes(b.type) && !(b.type==="question" && !b.choices && !ans && /citez|connaissez/i.test(b.q)));
+    if (!bl.length) return "";
+    return `<h2>${esc(p.titre)}</h2>` + bl.map(b=>printBlock(b, ans)).join("");
+  }).join("");
+  return `<div class="pr">
+    <h1>${ans ? "Corrigé : " : ""}${esc(L.titre)}</h1>
+    ${ans ? `<p>${esc(L.niveau)} · ${esc(L.sequence||"")}</p>` : `<div class="ident"><span>Nom : ……………………………</span><span>Classe : ${esc(L.niveau||"……")}</span><span>Date : ……………</span></div>`}
+    ${parts}
+  </div>`;
+}
+function printDoc(kind){
+  const area = document.getElementById("print-area");
+  area.innerHTML = kind==="peda" ? fichePeda() : ficheEleve(kind==="corrige");
+  setTimeout(()=>window.print(), 50);
+}
 
 /* ============ Navigation entre les vues ============ */
 function measure(){ document.documentElement.style.setProperty("--hdr", document.querySelector(".topbar").offsetHeight+"px"); }
@@ -612,31 +793,70 @@ let loadFails = [];
 function loadScript(src){ return new Promise(res=>{ const s=document.createElement("script"); s.src=src; s.onload=()=>res(true); s.onerror=()=>res(false); document.head.append(s); }); }
 async function loadCourses(){ for (const id of (window.CATALOGUE||[])) { if (!(await loadScript(`cours/${id}.js`))) loadFails.push(id); } }
 const dateFr = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString("fr-FR"); };
+const NIVEAUX = ["1AM","2AM","3AM","4AM"];
+const ACTIVITES = ["Compréhension de l’oral","Production orale","Compréhension de l’écrit","Vocabulaire","Grammaire","Conjugaison","Orthographe","Production écrite","Évaluation","Remédiation"];
+const LF = { niveau:"", activite:"", q:"" };
+try { Object.assign(LF, JSON.parse(localStorage.getItem("atelier:filtres")||"{}"), {q:""}); } catch(e){}
+const norm = s => (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 function renderLib(){
   const v = document.getElementById("view-lib");
   v.innerHTML = "";
   v.append(h("div",{class:"view-head"},
-    h("div",null, h("h2",null,"Bibliothèque de cours"),
-      h("p",null, COURS.length ? `${COURS.length} cours disponible${COURS.length>1?"s":""}. Chaque cours est une séance complète : chrono, conte narré, questions et exercices corrigés.` : "Aucun cours pour l’instant."))));
-  const grid = h("div",{class:"grid"});
-  COURS.forEach(c=>{
-    const tot = c.phases.reduce((s,p)=>s+p.duree,0);
-    const sv = readSaved(c.id);
-    const started = sv && (sv.phase>0 || (sv.spent||[]).some(Boolean));
-    grid.append(h("article",{class:"card ccard"},
-      h("span",{class:"label"}, c.niveau || "Cours"),
-      h("h3",null,c.titre),
-      h("div",{class:"meta"}, `${c.phases.length} étapes · ${tot} min` + (c.ajoute ? ` · ajouté le ${dateFr(c.ajoute)}` : "")),
-      started ? h("div",{class:"prog"}, `En cours : étape ${sv.phase+1} sur ${c.phases.length}`) : null,
-      h("div",{class:"actions"}, h("button",{class:"btn primary", onclick:()=>{ location.hash = "cours-"+c.id }}, started ? "Reprendre le cours" : "Ouvrir le cours"))));
-  });
-  grid.append(h("article",{class:"card ccard add"},
-    h("span",{class:"label"},"Nouveau cours"),
-    h("h3",null,"Ajouter un cours"),
-    h("p",{style:"margin:0; color:var(--muted)"},"Déposez la fiche (Word ou PDF) dans « Mes documents » pour l’afficher tout de suite. Elle sera ensuite transformée en séance interactive."),
-    h("div",{class:"actions"}, h("button",{class:"btn", onclick:()=>{ location.hash="documents" }},"Aller à Mes documents"))));
-  v.append(grid);
+    h("div",null, h("h2",null,"Mes cours"),
+      h("p",null, "Chaque cours est une séance prête à faire : déroulé chronométré, supports, exercices, et fiches à imprimer. Ils sont classés par niveau, projet et séquence."))));
+  const acts = [...new Set([...ACTIVITES, ...COURS.map(c=>c.activite).filter(Boolean)])];
+  const fNiv = h("select",{id:"f-niveau", class:"sel"}, h("option",{value:""},"Tous les niveaux"), NIVEAUX.map(n=>h("option",{value:n},n)));
+  const fAct = h("select",{id:"f-activite", class:"sel"}, h("option",{value:""},"Toutes les activités"), acts.map(a=>h("option",{value:a},a)));
+  const fQ = h("input",{id:"f-q", type:"search", placeholder:"Ex. : formules, conte…"});
+  fNiv.value = LF.niveau; fAct.value = LF.activite;
+  const keep = () => { try { localStorage.setItem("atelier:filtres", JSON.stringify({niveau:LF.niveau, activite:LF.activite})) } catch(e){} };
+  fNiv.onchange = () => { LF.niveau = fNiv.value; keep(); renderLibList(); };
+  fAct.onchange = () => { LF.activite = fAct.value; keep(); renderLibList(); };
+  fQ.oninput = () => { LF.q = fQ.value; renderLibList(); };
+  v.append(h("div",{class:"filters"},
+    h("label",{for:"f-niveau"},"Niveau", fNiv),
+    h("label",{for:"f-activite"},"Activité", fAct),
+    h("label",{for:"f-q"},"Rechercher un titre", fQ)));
+  v.append(h("div",{id:"lib-list"}));
+  renderLibList();
   if (loadFails.length) v.append(h("p",{class:"tts-warn", style:"margin-top:16px"}, "Cours introuvable(s) : "+loadFails.join(", ")+". Vérifiez le dossier cours/."));
+}
+function courseCard(c){
+  const tot = baseTotal(c);
+  const sv = readSaved(c.id);
+  const started = sv && (sv.phase>0 || (sv.spent||[]).some(Boolean));
+  return h("article",{class:"card ccard"},
+    h("span",{class:"label"}, c.activite || "Cours"),
+    h("h3",null,c.titre),
+    h("div",{class:"meta"}, `${c.phases.length} étapes · ${sv?.total || tot} min` + (c.ajoute ? ` · ajouté le ${dateFr(c.ajoute)}` : "")),
+    started ? h("div",{class:"prog"}, `En cours : étape ${sv.phase+1} sur ${c.phases.length}`) : null,
+    h("div",{class:"actions"}, h("button",{class:"btn primary", onclick:()=>{ location.hash = "cours-"+c.id }}, started ? "Reprendre" : "Ouvrir le cours")));
+}
+function renderLibList(){
+  const box = document.getElementById("lib-list");
+  box.innerHTML = "";
+  const order = c => [NIVEAUX.indexOf(c.niveau)<0 ? 9 : NIVEAUX.indexOf(c.niveau), c.projet||"", c.sequence||""];
+  const list = COURS
+    .filter(c => !LF.niveau || c.niveau===LF.niveau)
+    .filter(c => !LF.activite || c.activite===LF.activite)
+    .filter(c => !LF.q || norm(c.titre+" "+(c.projet||"")+" "+(c.sequence||"")).includes(norm(LF.q)))
+    .map((c,i)=>({c,i})).sort((a,b)=>{ const x=order(a.c), y=order(b.c); for (let k=0;k<3;k++){ if (x[k]<y[k]) return -1; if (x[k]>y[k]) return 1; } return a.i-b.i; }).map(o=>o.c);
+  if (!list.length) box.append(h("p",{class:"msg"}, COURS.length ? "Aucun cours ne correspond à ces filtres." : "Aucun cours pour l’instant."));
+  const groups = new Map();
+  list.forEach(c=>{ const k = [c.niveau||"Sans niveau", c.projet||"", c.sequence||""].join("|"); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(c); });
+  groups.forEach((cs,k)=>{
+    const [niv, proj, seq] = k.split("|");
+    box.append(h("section",{class:"group"},
+      h("h3",null, niv + (proj ? " · " + proj : "")),
+      seq ? h("h4",null, seq) : null,
+      h("div",{class:"grid"}, cs.map(courseCard))));
+  });
+  box.append(h("section",{class:"group"}, h("div",{class:"grid"},
+    h("article",{class:"card ccard add"},
+      h("span",{class:"label"},"Nouveau cours"),
+      h("h3",null,"Ajouter un cours"),
+      h("p",{style:"margin:0; color:var(--muted)"},"Déposez la fiche (Word, PDF ou photo) dans « Mes documents » pour l’afficher tout de suite. Elle sera ensuite transformée en séance complète."),
+      h("div",{class:"actions"}, h("button",{class:"btn", onclick:()=>{ location.hash="documents" }},"Aller à Mes documents"))))));
 }
 
 /* ============ Mes documents (Word / PDF, gardés sur cet appareil) ============ */
@@ -667,16 +887,16 @@ const DOCS = {
 };
 let openDocId = null;
 const sizeFr = n => n<1024*1024 ? Math.max(1,Math.round(n/1024))+" Ko" : (n/1024/1024).toFixed(1).replace(".",",")+" Mo";
-const kindOf = name => { const e = (name.split(".").pop()||"").toLowerCase(); return e==="pdf" ? "pdf" : e==="docx" ? "word" : e==="doc" ? "doc" : null; };
+const kindOf = name => { const e = (name.split(".").pop()||"").toLowerCase(); return e==="pdf" ? "pdf" : e==="docx" ? "word" : e==="doc" ? "doc" : ["jpg","jpeg","png","webp","gif"].includes(e) ? "photo" : ["heic","heif"].includes(e) ? "heic" : null; };
 
 async function renderDocs(){
   const v = document.getElementById("view-docs");
   v.innerHTML = "";
   await DOCS.open();
   v.append(h("div",{class:"view-head"}, h("div",null, h("h2",null,"Mes documents"),
-    h("p",null,"Ajoutez vos fiches de cours en Word (.docx) ou en PDF pour les afficher en classe. Elles restent sur cet appareil, dans ce navigateur."))));
-  const input = h("input",{id:"doc-input", type:"file", multiple:"", accept:".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
-  const drop = h("label",{class:"drop", for:"doc-input"}, input, h("b",null,"Déposez un fichier Word ou PDF ici"), h("span",null,"ou cliquez pour le choisir sur l’appareil"));
+    h("p",null,"Ajoutez vos fiches de cours en Word (.docx), en PDF ou en photo (prise au téléphone) pour les afficher en classe. Elles restent sur cet appareil, dans ce navigateur."))));
+  const input = h("input",{id:"doc-input", type:"file", multiple:"", accept:".pdf,.docx,.doc,.jpg,.jpeg,.png,.webp,.heic,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"});
+  const drop = h("label",{class:"drop", for:"doc-input"}, input, h("b",null,"Déposez un fichier Word, PDF ou une photo ici"), h("span",null,"ou cliquez pour le choisir sur l’appareil"));
   input.addEventListener("change", ()=>{ addFiles(input.files); input.value=""; });
   drop.addEventListener("dragover", e=>{ e.preventDefault(); drop.classList.add("over"); });
   drop.addEventListener("dragleave", ()=>drop.classList.remove("over"));
@@ -699,7 +919,7 @@ async function addFiles(files){
     const d = { id: Date.now()+"-"+Math.random().toString(36).slice(2,7), name:f.name, kind:k, size:f.size, added:new Date().toISOString(), blob:f };
     try { await DOCS.put(d); last = d; } catch(e){ bad.push(f.name+" (espace insuffisant)"); }
   }
-  await refreshDocs(bad.length ? "Non ajouté (seuls Word .docx et PDF sont acceptés) : "+bad.join(", ") : "");
+  await refreshDocs(bad.length ? "Non ajouté (formats acceptés : Word .docx, PDF, photo JPG ou PNG) : "+bad.join(", ") : "");
   if (last) openDoc(last);
 }
 async function refreshDocs(warn){
@@ -718,7 +938,7 @@ async function refreshDocs(warn){
       refreshDocs();
     };
     list.append(h("div",{class:"card doc-row"+(d.id===openDocId?" cur":"")},
-      h("span",{class:"badge "+(d.kind==="pdf"?"pdf":"word")}, d.kind==="pdf"?"PDF":"WORD"),
+      h("span",{class:"badge "+(d.kind==="pdf"?"pdf":"word")}, ({pdf:"PDF",word:"WORD",photo:"PHOTO",heic:"PHOTO"})[d.kind]||"DOC"),
       h("div",{style:"min-width:0"}, h("div",{class:"doc-name"}, d.name), h("div",{class:"doc-meta"}, `${sizeFr(d.size)} · ajouté le ${dateFr(d.added)}`)),
       h("div",{class:"row"}, h("button",{class:"btn primary", onclick:()=>openDoc(d)},"Ouvrir"), del)));
   });
@@ -735,6 +955,12 @@ async function openDoc(d){
   try {
     if (d.kind==="doc") { body.innerHTML = ""; body.append(h("p",{class:"msg"},"Ce fichier est au format Word ancien (.doc). Ouvrez-le dans Word et enregistrez-le en .docx ou en PDF, puis ajoutez-le de nouveau.")); return; }
     const buf = await d.blob.arrayBuffer();
+    if (d.kind==="heic") { body.innerHTML = ""; body.append(h("p",{class:"msg"},"Cette photo est au format HEIC (iPhone), que les navigateurs n’affichent pas. Sur l’iPhone : Réglages › Appareil photo › Formats › « Le plus compatible », ou envoyez-la en JPG.")); return; }
+    if (d.kind==="photo") {
+      const url = URL.createObjectURL(d.blob);
+      body.innerHTML = ""; body.append(h("img",{class:"photo-view", src:url, alt:"Photo : "+d.name}));
+      return;
+    }
     if (d.kind==="word") {
       const mammoth = await needLib("word");
       const out = await mammoth.convertToHtml({arrayBuffer:buf});

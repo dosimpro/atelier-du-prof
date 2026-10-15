@@ -5,7 +5,27 @@ COURS.push({
   id: "formules-ouverture",
   titre: "Les formules d’ouverture",
   niveau: "2AM",
+  projet: "Projet 1 : Dire et jouer un conte",
+  sequence: "Séquence 1 : Comprendre et produire la situation initiale",
+  activite: "Vocabulaire",
   ajoute: "2026-10-15",
+  fiche: {
+    tache: "Tâche 1 : Dire et jouer un conte",
+    theme: "Les formules d’ouverture",
+    titre: "Un bûcheron honnête",
+    objectifs: ["Repérer les expressions qui introduisent la situation initiale dans un conte.", "Employer des formules d’ouverture."],
+    support: "Manuel scolaire p. 13 : « Un bûcheron honnête »",
+    materiel: "Tableau, cahiers, manuel scolaire, vidéoprojecteur",
+    deroulement: [
+      { prof: "Rappelle les trois moments du conte. Demande : « Comment appelle-t-on la première partie d’un conte ? »", eleve: "Répondent à l’oral : la situation initiale. Citent des débuts de contes connus." },
+      { prof: "Projette le conte narré « Le bûcheron honnête ». Demande de repérer l’expression qui ouvre le conte.", eleve: "Écoutent, lèvent la main à « Il y a longtemps », répondent aux questions de compréhension." },
+      { prof: "Fait lire le support. Pose les questions d’observation (genre du texte, personnage, action).", eleve: "Lisent, observent, répondent : un conte, le bûcheron, il coupait du bois." },
+      { prof: "Guide l’analyse : rôle de la première phrase, expression qui l’introduit, son nom, ses équivalents, l’information qu’elle donne.", eleve: "Identifient la situation initiale et la formule d’ouverture ; proposent d’autres formules ; comprennent qu’elle répond à « Quand ? »." },
+      { prof: "Fait formuler la règle, écrit la liste des formules au tableau, la fait lire et recopier.", eleve: "Répètent les formules, recopient la règle dans le cahier." },
+      { prof: "Propose les activités 1 à 4, circule, corrige collectivement.", eleve: "Colorient, complètent, classent, trouvent l’intrus ; corrigent leurs erreurs." },
+      { prof: "Donne la consigne de production, rappelle les critères (formule, personnage, lieu, imparfait).", eleve: "Rédigent la situation initiale de « Blanche-Neige », relisent avec la grille." }
+    ]
+  },
   eyebrow: "2AM · Projet 1 « Dire et jouer un conte » · Séquence 1 · Vocabulaire",
   phases: [
     { titre: "Mise en situation", duree: 5, blocs: [
