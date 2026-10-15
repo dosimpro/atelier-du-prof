@@ -9,6 +9,15 @@ COURS.push({
   sequence: "Séquence 1 : Comprendre et produire la situation initiale",
   activite: "Vocabulaire",
   ajoute: "2026-10-15",
+  source: 1,
+  synthese: {
+    retenir: ["La formule d’ouverture répond à la question « Quand ? » : elle situe l’histoire dans un passé lointain et indéterminé."],
+    remediation: [
+      "Confusion avec les connecteurs (« soudain », « ensuite ») : faire classer des débuts de phrases en deux colonnes « ouvre le conte » / « fait avancer l’histoire ».",
+      "Situation initiale incomplète : faire répondre à « Quand ? Où ? Qui ? » avant d’écrire."
+    ],
+    suite: "Séance suivante : l’élément perturbateur et les connecteurs du récit (« un jour », « soudain »), puis les formules de clôture."
+  },
   fiche: {
     tache: "Tâche 1 : Dire et jouer un conte",
     theme: "Les formules d’ouverture",

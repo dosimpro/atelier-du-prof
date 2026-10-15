@@ -219,6 +219,32 @@ textarea { width:100%; min-height:140px; padding:12px; border-radius:8px; border
 .dlg-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px }
 .dlg-foot { display:flex; justify-content:flex-end }
 .photo-view { max-width:100%; height:auto; border-radius:6px; background:#fff }
+.subtabs { display:inline-flex; margin-bottom:20px }
+.ph.syn { margin-top:6px; border-top:1px dashed var(--line); border-radius:0 0 8px 8px; padding-top:12px }
+.ph.syn .n { background:var(--wood-soft); border-color:var(--wood) }
+.tbl-wrap { overflow-x:auto }
+.tbl { border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums }
+.tbl th, .tbl td { text-align:left; padding:6px 10px; border-bottom:1px solid var(--line) }
+.tbl thead th { font-size:.8em; color:var(--muted); text-transform:uppercase; letter-spacing:.06em }
+.tbl tfoot th { border-bottom:0 }
+.tbl td.over { color:var(--bad); font-weight:700 }
+.obj-list { display:flex; flex-direction:column; gap:12px }
+.obj p { margin:0 0 6px }
+.syn-list { margin:0; padding-left:1.2em; display:flex; flex-direction:column; gap:6px }
+.pill { display:inline-block; font-size:.78em; font-weight:700; padding:.15em .55em; border-radius:999px; margin-left:4px; font-variant-numeric:tabular-nums }
+.pill.ok { background:var(--ok-soft); color:var(--ok) } .pill.bad { background:var(--bad-soft); color:var(--bad) } .pill.wait { background:var(--surface-2); color:var(--muted) }
+.sec-h { font-size:1.05em; margin:24px 0 2px }
+.sec-sub { margin:0 0 10px; color:var(--muted); font-size:.9em }
+.fiche-row.cur { box-shadow:0 0 0 2px var(--forest) }
+.ren { padding:.4em .6em; border-radius:8px; border:1px solid var(--line); background:var(--surface-2); min-width:0; flex:1 1 220px }
+.fiche-row { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:16px; align-items:center; padding:14px 16px }
+.num { display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:64px; padding:6px 8px; border-radius:10px; background:var(--wood-soft); font-family:var(--f-display); font-size:1.5em; line-height:1; font-variant-numeric:tabular-nums }
+.num small { font-family:var(--f-body); font-size:.45em; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:4px }
+.fiche-state { margin-top:4px; font-size:.8em; font-weight:700 }
+.fiche-state.ok { color:var(--ok) } .fiche-state.wait { color:var(--wood) }
+@media (max-width: 860px) { .fiche-row { grid-template-columns:auto minmax(0,1fr) } .fiche-row .row { grid-column:1 / -1 } }
+.dlg-wide { width:min(980px, calc(100vw - 32px)) }
+.src-body { max-height:72vh; overflow:auto; display:flex; justify-content:center; background:var(--surface-2); border-radius:10px; padding:10px }
 #print-area { display:none }
 @media print {
   @page { size:A4; margin:14mm }
@@ -284,6 +310,7 @@ textarea { width:100%; min-height:140px; padding:12px; border-radius:8px; border
           </select>
         </label>
         <button class="btn" id="answers" aria-pressed="false" title="Pour projeter sans montrer les réponses">Cacher les réponses</button>
+        <button class="btn" id="src-open" hidden>Fiche d’origine</button>
         <button class="btn" id="print-open">Imprimer…</button>
       </div>
     </div>
@@ -313,9 +340,21 @@ textarea { width:100%; min-height:140px; padding:12px; border-radius:8px; border
     <div class="dlg-foot"><button class="btn ghost" value="close">Fermer</button></div>
   </form>
 </dialog>
+<dialog id="src-dlg" class="dlg dlg-wide" aria-labelledby="src-title">
+  <div class="dlg-in">
+    <div class="viewer-head">
+      <h2 id="src-title">Fiche d’origine</h2>
+      <div class="row" id="src-pages"></div>
+      <button class="btn" id="src-close">Fermer</button>
+    </div>
+    <p class="dlg-sub" id="src-cap"></p>
+    <div class="src-body" id="src-body"></div>
+  </div>
+</dialog>
 <div id="print-area"></div>
 
 <script src="cours/catalogue.js"></script>
+<script src="cours/fiches.js"></script>
 <script>
 /* =========================================================
    L’ATELIER DU PROF : le CODE de l'application.
@@ -325,13 +364,13 @@ textarea { width:100%; min-height:140px; padding:12px; border-radius:8px; border
    Types de blocs d'un cours : note, support, schema, question, film,
    fixation, colorier, completer, trier, intrus, production, liens.
    ========================================================= */
-const APP_VERSION = "1.2.0";
+const APP_VERSION = "1.3.0";
 window.COURS = window.COURS || [];
 
 /* ============ État ============ */
 let L = null, S = null, total = 0;
 const PREF = { big:false, hide:false, rate:0.9 };
-function save(){ if (!L || !S) return; try { localStorage.setItem("classe-conte:"+L.id, JSON.stringify({phase:S.phase, spent:S.spent, total:S.total})) } catch(e){} }
+function save(){ if (!L || !S) return; try { localStorage.setItem("classe-conte:"+L.id, JSON.stringify({phase:S.phase, spent:S.spent, total:S.total, scores:S.scores})) } catch(e){} }
 function readSaved(id){ try { return JSON.parse(localStorage.getItem("classe-conte:"+id)||"null") } catch(e){ return null } }
 
 /* ============ Utilitaires ============ */
@@ -368,7 +407,7 @@ function stopSpeak(){ if (TTS) speechSynthesis.cancel(); }
 function listenBtn(text, label){ return h("button",{class:"btn", onclick:()=>speak(text)}, label||"Écouter"); }
 
 /* ============ Score ============ */
-function setScore(key, ok, tot){ S.scores[key] = {ok, tot}; renderScore(); }
+function setScore(key, ok, tot){ S.scores[key] = {ok, tot}; renderScore(); save(); }
 function renderScore(){
   let o=0,t=0; Object.values(S.scores).forEach(s=>{o+=s.ok;t+=s.tot});
   const el = document.getElementById("score"); if (el) el.textContent = `${o} / ${t}`;
@@ -597,12 +636,15 @@ function renderNav(){
   nav.append(h("h2",null,"Déroulé · "+total+" min"));
   L.phases.forEach((p,i)=> nav.append(h("button",{class:"ph"+(i===S.phase?" cur":"")+(i<S.phase?" done":""), onclick:()=>go(i)},
     h("span",{class:"n"}, i+1), h("span",null,p.titre), h("span",{class:"d"}, S.durees[i]+" min"))));
+  const ns = L.phases.length;
+  nav.append(h("button",{class:"ph syn"+(S.phase===ns?" cur":""), onclick:()=>go(ns)}, h("span",{class:"n"},"✓"), h("span",null,"Synthèse du cours"), h("span",{class:"d"},"bilan")));
   const tr = document.getElementById("track");
   tr.innerHTML = "";
   L.phases.forEach((p,i)=> tr.append(h("span",{style:`flex:${S.durees[i]}`, class:i===S.phase?"cur":"", title:p.titre}, h("i",{style:`width:${Math.min(100, S.spent[i]/(S.durees[i]*60)*100)}%`}))));
 }
 function renderStage(){
   stopSpeak();
+  if (S.phase >= L.phases.length) { renderSynthese(); return; }
   const p = L.phases[S.phase];
   const st = document.getElementById("stage");
   st.innerHTML = "";
@@ -616,13 +658,14 @@ function renderStage(){
   st.append(blocks);
   st.append(h("div",{class:"pager"},
     S.phase>0 ? h("button",{class:"btn", onclick:()=>go(S.phase-1)},"‹ "+L.phases[S.phase-1].titre) : h("button",{class:"btn", onclick:()=>{location.hash=""}},"‹ Tous les cours"),
-    S.phase<L.phases.length-1 ? h("button",{class:"btn primary", onclick:()=>go(S.phase+1)}, L.phases[S.phase+1].titre+" ›") : h("span",{class:"meta"},"Fin de la séance")));
+    S.phase<L.phases.length-1 ? h("button",{class:"btn primary", onclick:()=>go(S.phase+1)}, L.phases[S.phase+1].titre+" ›") : h("button",{class:"btn primary", onclick:()=>go(L.phases.length)},"Synthèse du cours ›")));
 }
 function go(i){ S.phase=i; save(); renderNav(); renderStage(); renderClock(); window.scrollTo({top:0, behavior:"smooth"}); }
 function renderClock(){
   if (!S) return;
   const el = S.spent.reduce((a,b)=>a+b,0);
   document.getElementById("clock").textContent = `${fmt(el)} / ${fmt(total*60)}`;
+  if (S.phase >= L.phases.length) { const pl = document.getElementById("phase-left"); pl.textContent = "Séance terminée : synthèse"; pl.classList.remove("over"); return; }
   const left = S.durees[S.phase]*60 - S.spent[S.phase];
   const pl = document.getElementById("phase-left");
   pl.textContent = left>=0 ? `Étape : encore ${fmt(left)}` : `Étape : dépassée de ${fmt(left)}`;
@@ -639,7 +682,7 @@ function openLesson(id){
     L = c;
     S = { phase:0, running:false, spent:L.phases.map(()=>0), scores:{} };
     const saved = readSaved(L.id);
-    if (saved) { S.phase = Math.min(saved.phase||0, L.phases.length-1); if (saved.spent?.length===L.phases.length) S.spent = saved.spent; }
+    if (saved) { S.phase = Math.min(saved.phase||0, L.phases.length); if (saved.spent?.length===L.phases.length) S.spent = saved.spent; if (saved.scores) S.scores = saved.scores; }
     setDuree(saved?.total || baseTotal(L));
   }
   const dsel = document.getElementById("duree-select");
@@ -647,6 +690,7 @@ function openLesson(id){
   dsel.value = String(total);
   document.getElementById("lesson-title").textContent = L.titre;
   document.getElementById("eyebrow").textContent = L.eyebrow || L.niveau || "";
+  document.getElementById("src-open").hidden = !ficheOf(L);
   showView("lesson");
   renderNav(); renderStage(); renderClock(); renderScore(); playLabel();
 }
@@ -667,12 +711,39 @@ playB.onclick = () => { S.running = !S.running; playLabel(); };
 document.getElementById("reset").onclick = () => { S.spent = S.spent.map(()=>0); S.running=false; playLabel(); save(); renderClock(); renderNav(); };
 document.getElementById("answers").onclick = e => { PREF.hide=!PREF.hide; document.body.classList.toggle("answers-hidden",PREF.hide); e.currentTarget.setAttribute("aria-pressed",PREF.hide); };
 document.getElementById("big").onclick = e => { PREF.big=!PREF.big; document.body.classList.toggle("big",PREF.big); e.currentTarget.setAttribute("aria-pressed",PREF.big); measure(); };
-setInterval(()=>{ if(!S || !S.running) return; S.spent[S.phase]++; renderClock(); if (S.spent[S.phase]%10===0) save(); }, 1000);
+setInterval(()=>{ if(!S || !S.running || S.phase >= L.phases.length) return; S.spent[S.phase]++; renderClock(); if (S.spent[S.phase]%10===0) save(); }, 1000);
 
 /* ============ Impression : fiche pédagogique, fiche élève, corrigé ============ */
 const PROF = { nom:"", etab:"" };
 try { Object.assign(PROF, JSON.parse(localStorage.getItem("atelier:prof")||"{}")); } catch(e){}
 const dlg = document.getElementById("print-dlg");
+/* Fiche d'origine : les pages du document dont le cours est tiré */
+const srcDlg = document.getElementById("src-dlg");
+let SRC = null;
+const FICHES = () => window.FICHES || [];
+const numTxt = n => "N° " + String(n).padStart(3,"0");
+const ficheOf = c => c && c.source ? FICHES().find(f=>f.num===c.source) : null;
+function showSrc(i){
+  const s = SRC.pages[i];
+  document.getElementById("src-cap").textContent = s.legende || "";
+  const body = document.getElementById("src-body");
+  body.innerHTML = "";
+  body.append(h("img",{src:s.src, alt:(s.legende||"Page")+" de la fiche d’origine", class:"photo-view"}));
+  [...document.getElementById("src-pages").children].forEach((b,k)=>b.setAttribute("aria-pressed", k===i));
+  body.scrollTop = 0;
+}
+function openSrc(f){
+  if (!f || !f.pages || !f.pages.length) return;
+  SRC = f;
+  document.getElementById("src-title").textContent = `Fiche ${numTxt(f.num)} : ${f.titre}`;
+  const pages = document.getElementById("src-pages");
+  pages.innerHTML = "";
+  f.pages.forEach((s,i)=> pages.append(h("button",{class:"btn", onclick:()=>showSrc(i)}, "Page "+(i+1))));
+  showSrc(0);
+  if (srcDlg.showModal) srcDlg.showModal(); else srcDlg.setAttribute("open","");
+}
+document.getElementById("src-open").onclick = () => openSrc(ficheOf(L));
+document.getElementById("src-close").onclick = () => { srcDlg.close ? srcDlg.close() : srcDlg.removeAttribute("open"); };
 document.getElementById("print-open").onclick = () => {
   document.getElementById("pf-nom").value = PROF.nom; document.getElementById("pf-etab").value = PROF.etab;
   if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open","");
@@ -761,9 +832,114 @@ function ficheEleve(ans){
     ${parts}
   </div>`;
 }
+/* ============ Synthèse du cours (dernière étape de chaque séance) ============ */
+const EXOS = ["colorier","completer","trier","intrus"];
+const exoTitre = b => b.titre || b.q || "Exercice";
+function bilanLoad(){ try { return JSON.parse(localStorage.getItem("atelier:bilan:"+L.id)||"{}") } catch(e){ return {} } }
+function bilanSave(b){ try { localStorage.setItem("atelier:bilan:"+L.id, JSON.stringify(b)) } catch(e){} }
+/* Toutes les données de la synthèse, calculées à partir du cours : sert à l'écran et à l'impression */
+function syntheseData(){
+  const sy = L.synthese || {};
+  const temps = L.phases.map((p,i)=>({ titre:p.titre, prevu:S.durees[i]*60, reel:S.spent[i] }));
+  const retenir = [];
+  L.phases.forEach(p=>p.blocs.forEach(b=>{ if (b.type==="fixation") retenir.push(strip(b.rule) + (b.items?.length ? " " + b.items.join(" ; ") : "")); }));
+  (sy.retenir||[]).forEach(r=>retenir.push(r));
+  const exos = [];
+  L.phases.forEach((p,pi)=>p.blocs.forEach((b,bi)=>{
+    if (EXOS.includes(b.type) || (b.type==="question" && b.choices)) {
+      const sc = S.scores[`p${pi}b${bi}`];
+      exos.push({ etape:p.titre, titre:strip(exoTitre(b)), sc, faible: sc && sc.tot && sc.ok/sc.tot < 0.7 });
+    }
+  }));
+  const remed = [...(sy.remediation||[])];
+  exos.filter(e=>e.faible && !e.titre.match(/^\d\)/)).forEach(e=>remed.push(`Reprendre en remédiation : « ${e.titre} » (${e.sc.ok} / ${e.sc.tot}).`));
+  return { sy, temps, retenir, exos, remed, objectifs:(L.fiche?.objectifs)||[] };
+}
+const ETATS = [["ok","Atteint"],["part","Partiellement"],["non","À reprendre"]];
+function renderSynthese(){
+  const st = document.getElementById("stage");
+  st.innerHTML = "";
+  const D = syntheseData(), B = bilanLoad();
+  const reelTot = D.temps.reduce((a,t)=>a+t.reel,0), prevTot = D.temps.reduce((a,t)=>a+t.prevu,0);
+  st.append(h("div",{class:"stage-head"}, h("h2",null,"Synthèse du cours"),
+    h("span",{class:"meta"}, `${L.titre} · ${L.niveau||""}${L.sequence ? " · "+L.sequence : ""}`)));
+  const blocks = h("div",{class:"blocks"});
+
+  // 1. Bilan du temps
+  const ecart = s => (s>0?"+":s<0?"−":"") + fmt(Math.abs(s));
+  blocks.append(h("div",{class:"card"}, h("span",{class:"label"},"Bilan du temps"),
+    reelTot ? null : h("p",{class:"sec-sub"},"Le chrono n’a pas été lancé : seules les durées prévues sont connues."),
+    h("div",{class:"tbl-wrap"}, h("table",{class:"tbl"},
+      h("thead",null, h("tr",null, h("th",null,"Étape"), h("th",null,"Prévu"), h("th",null,"Réel"), h("th",null,"Écart"))),
+      h("tbody",null, D.temps.map(t=>h("tr",null, h("td",null,t.titre), h("td",null,fmt(t.prevu)), h("td",null, t.reel ? fmt(t.reel) : "—"),
+        h("td",{class: t.reel - t.prevu > 60 ? "over" : ""}, t.reel ? ecart(t.reel - t.prevu) : "—")))),
+      h("tfoot",null, h("tr",null, h("th",null,"Total"), h("th",null,fmt(prevTot)), h("th",null, reelTot ? fmt(reelTot) : "—"), h("th",null, reelTot ? ecart(reelTot-prevTot) : "—")))))));
+
+  // 2. Objectifs : auto-évaluation de l'enseignant
+  if (D.objectifs.length) {
+    blocks.append(h("div",{class:"card"}, h("span",{class:"label"},"Objectifs de la séance"),
+      h("p",{class:"sec-sub"},"Votre appréciation, gardée sur cet appareil."),
+      h("div",{class:"obj-list"}, D.objectifs.map((o,i)=>{
+        const row = h("div",{class:"chips"});
+        ETATS.forEach(([k,lab])=>{
+          const b = h("button",{class:"chip"+(B["o"+i]===k?" on":""), "aria-pressed":String(B["o"+i]===k), onclick:()=>{ B["o"+i] = B["o"+i]===k ? null : k; bilanSave(B); renderSynthese(); }}, lab);
+          row.append(b);
+        });
+        return h("div",{class:"obj"}, h("p",null,o), row);
+      }))));
+  }
+
+  // 3. À retenir
+  if (D.retenir.length) blocks.append(h("div",{class:"card"}, h("span",{class:"label"},"À retenir"),
+    h("ul",{class:"syn-list"}, D.retenir.map(r=>h("li",null,r)))));
+
+  // 4. Exercices
+  if (D.exos.length) blocks.append(h("div",{class:"card"}, h("span",{class:"label"},"Exercices de la séance"),
+    h("ul",{class:"syn-list"}, D.exos.map(e=>h("li",null, `${e.titre} `,
+      h("span",{class:"pill "+(!e.sc ? "wait" : e.faible ? "bad" : "ok")}, !e.sc ? "non fait" : `${e.sc.ok} / ${e.sc.tot}`))))));
+
+  // 5. Remédiation
+  blocks.append(h("div",{class:"card"}, h("span",{class:"label"},"Remédiation proposée"),
+    D.remed.length ? h("ul",{class:"syn-list"}, D.remed.map(r=>h("li",null,r))) : h("p",{class:"sec-sub"},"Aucune difficulté repérée pendant la séance.")));
+
+  // 6. Suite
+  if (D.sy.suite) blocks.append(h("div",{class:"card"}, h("span",{class:"label"},"Pour la prochaine séance"), h("p",{style:"margin:0"}, D.sy.suite)));
+
+  // 7. Notes de l'enseignant
+  const ta = h("textarea",{id:"syn-notes", placeholder:"Ce qui a bien marché, ce qui est à revoir, élèves à suivre…"});
+  ta.value = B.notes || "";
+  ta.addEventListener("input", ()=>{ B.notes = ta.value; bilanSave(B); });
+  blocks.append(h("div",{class:"card"}, h("span",{class:"label"},"Mes notes"), ta));
+
+  st.append(blocks);
+  st.append(h("div",{class:"pager"},
+    h("button",{class:"btn", onclick:()=>go(L.phases.length-1)},"‹ "+L.phases[L.phases.length-1].titre),
+    h("div",{class:"row"},
+      h("button",{class:"btn", onclick:()=>printDoc("synthese")},"Imprimer la synthèse"),
+      h("button",{class:"btn primary", onclick:()=>{ S.spent = S.spent.map(()=>0); S.scores = {}; S.running=false; playLabel(); go(0); }},"Recommencer la séance"))));
+}
+function ficheSynthese(){
+  const D = syntheseData(), B = bilanLoad();
+  const li = a => "<ul>"+a.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>";
+  const etat = k => (ETATS.find(e=>e[0]===k)||[,"—"])[1];
+  return `<div class="pr">
+    <h1>Synthèse : ${esc(L.titre)}</h1>
+    <p>${esc(L.niveau||"")} · ${esc(L.sequence||"")} · ${esc(PROF.nom||"")}${PROF.etab ? " · "+esc(PROF.etab) : ""} · ${new Date().toLocaleDateString("fr-FR")}</p>
+    <h2>Bilan du temps</h2>
+    <table class="dt"><thead><tr><th>Étape</th><th>Prévu</th><th>Réel</th></tr></thead><tbody>${D.temps.map(t=>`<tr><td>${esc(t.titre)}</td><td>${fmt(t.prevu)}</td><td>${t.reel?fmt(t.reel):"—"}</td></tr>`).join("")}</tbody></table>
+    ${D.objectifs.length ? `<h2>Objectifs</h2><table class="dt"><tbody>${D.objectifs.map((o,i)=>`<tr><td>${esc(o)}</td><td>${etat(B["o"+i])}</td></tr>`).join("")}</tbody></table>` : ""}
+    ${D.retenir.length ? `<h2>À retenir</h2>${li(D.retenir)}` : ""}
+    ${D.exos.length ? `<h2>Exercices</h2>${li(D.exos.map(e=>`${e.titre} : ${e.sc ? e.sc.ok+" / "+e.sc.tot : "non fait"}`))}` : ""}
+    <h2>Remédiation</h2>${D.remed.length ? li(D.remed) : "<p>Aucune difficulté repérée.</p>"}
+    ${D.sy.suite ? `<h2>Prochaine séance</h2><p>${esc(D.sy.suite)}</p>` : ""}
+    ${B.notes ? `<h2>Notes</h2><p>${esc(B.notes).replace(/\n/g,"<br>")}</p>` : ""}
+    <p class="foot-pr">L’Atelier du Prof</p>
+  </div>`;
+}
+
 function printDoc(kind){
   const area = document.getElementById("print-area");
-  area.innerHTML = kind==="peda" ? fichePeda() : ficheEleve(kind==="corrige");
+  area.innerHTML = kind==="peda" ? fichePeda() : kind==="synthese" ? ficheSynthese() : ficheEleve(kind==="corrige");
   setTimeout(()=>window.print(), 50);
 }
 
@@ -784,7 +960,8 @@ function route(){
   const hs = decodeURIComponent(location.hash.slice(1));
   if (hs==="documents") { save(); showView("docs"); renderDocs(); }
   else if (hs.startsWith("cours-")) openLesson(hs.slice(6));
-  else { save(); showView("lib"); renderLib(); }
+  else if (hs==="fiches") { save(); showView("lib"); renderLib("fiches"); }
+  else { save(); showView("lib"); renderLib("seances"); }
 }
 window.addEventListener("hashchange", route);
 
@@ -798,12 +975,17 @@ const ACTIVITES = ["Compréhension de l’oral","Production orale","Compréhensi
 const LF = { niveau:"", activite:"", q:"" };
 try { Object.assign(LF, JSON.parse(localStorage.getItem("atelier:filtres")||"{}"), {q:""}); } catch(e){}
 const norm = s => (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
-function renderLib(){
+function renderLib(vue){
   const v = document.getElementById("view-lib");
   v.innerHTML = "";
   v.append(h("div",{class:"view-head"},
     h("div",null, h("h2",null,"Mes cours"),
-      h("p",null, "Chaque cours est une séance prête à faire : déroulé chronométré, supports, exercices, et fiches à imprimer. Ils sont classés par niveau, projet et séquence."))));
+      h("p",null, vue==="fiches"
+        ? "Chaque fichier que vous envoyez est enregistré ici avec un numéro et un titre, dans l’ordre d’arrivée. Une fiche devient ensuite une séance."
+        : "Chaque cours est une séance prête à faire : déroulé chronométré, supports, exercices, et fiches à imprimer. Ils sont classés par niveau, projet et séquence."))));
+  const sub = (id, label, n) => h("button",{class:"tab", onclick:()=>{ location.hash = id==="fiches" ? "fiches" : ""; }, ...(vue===id ? {"aria-current":"page"} : {})}, `${label} (${n})`);
+  v.append(h("nav",{class:"tabs subtabs", "aria-label":"Mes cours"}, sub("seances","Séances",COURS.length), sub("fiches","Fiches reçues",FICHES().length)));
+  if (vue==="fiches") { renderFiches(v); return; }
   const acts = [...new Set([...ACTIVITES, ...COURS.map(c=>c.activite).filter(Boolean)])];
   const fNiv = h("select",{id:"f-niveau", class:"sel"}, h("option",{value:""},"Tous les niveaux"), NIVEAUX.map(n=>h("option",{value:n},n)));
   const fAct = h("select",{id:"f-activite", class:"sel"}, h("option",{value:""},"Toutes les activités"), acts.map(a=>h("option",{value:a},a)));
@@ -831,6 +1013,23 @@ function courseCard(c){
     h("div",{class:"meta"}, `${c.phases.length} étapes · ${sv?.total || tot} min` + (c.ajoute ? ` · ajouté le ${dateFr(c.ajoute)}` : "")),
     started ? h("div",{class:"prog"}, `En cours : étape ${sv.phase+1} sur ${c.phases.length}`) : null,
     h("div",{class:"actions"}, h("button",{class:"btn primary", onclick:()=>{ location.hash = "cours-"+c.id }}, started ? "Reprendre" : "Ouvrir le cours")));
+}
+function ficheCard(f){
+  const c = f.cours ? COURS.find(x=>x.id===f.cours) : null;
+  return h("article",{class:"card fiche-row"},
+    h("div",{class:"num"}, h("small",null,"Fiche"), String(f.num).padStart(3,"0")),
+    h("div",{style:"min-width:0"},
+      h("div",{class:"doc-name"}, f.titre),
+      h("div",{class:"doc-meta"}, [f.niveau, f.activite, f.format, f.recu ? "reçue le "+dateFr(f.recu) : ""].filter(Boolean).join(" · ")),
+      h("div",{class:"fiche-state "+(c?"ok":"wait")}, c ? "Transformée en séance" : "En attente de transformation")),
+    h("div",{class:"row"},
+      f.pages && f.pages.length ? h("button",{class:"btn", onclick:()=>openSrc(f)},"Voir la fiche") : null,
+      c ? h("button",{class:"btn primary", onclick:()=>{ location.hash = "cours-"+c.id }},"Ouvrir la séance") : null));
+}
+function renderFiches(v){
+  const list = FICHES().slice().sort((a,b)=>a.num-b.num);
+  if (!list.length) { v.append(h("p",{class:"msg"},"Aucune fiche reçue pour l’instant.")); return; }
+  v.append(h("div",{class:"docs-list"}, list.map(ficheCard)));
 }
 function renderLibList(){
   const box = document.getElementById("lib-list");
@@ -894,7 +1093,13 @@ async function renderDocs(){
   v.innerHTML = "";
   await DOCS.open();
   v.append(h("div",{class:"view-head"}, h("div",null, h("h2",null,"Mes documents"),
-    h("p",null,"Ajoutez vos fiches de cours en Word (.docx), en PDF ou en photo (prise au téléphone) pour les afficher en classe. Elles restent sur cet appareil, dans ce navigateur."))));
+    h("p",null,"Tous vos documents, dans l’ordre d’arrivée, chacun avec son numéro et son titre. Commencez par les fiches enregistrées, puis ajoutez les vôtres."))));
+  const fl = FICHES().slice().sort((a,b)=>a.num-b.num);
+  v.append(h("h3",{class:"sec-h"}, `Fiches enregistrées (${fl.length})`));
+  v.append(h("p",{class:"sec-sub"},"Les fichiers que vous avez envoyés, numérotés et titrés. Visibles sur tous vos appareils."));
+  v.append(fl.length ? h("div",{class:"docs-list"}, fl.map(ficheCard)) : h("p",{class:"msg"},"Aucune fiche enregistrée pour l’instant."));
+  v.append(h("h3",{class:"sec-h"}, "Ajoutés sur cet appareil"));
+  v.append(h("p",{class:"sec-sub"},"Word (.docx), PDF ou photo prise au téléphone. Chaque ajout reçoit un numéro et un titre que vous pouvez modifier."));
   const input = h("input",{id:"doc-input", type:"file", multiple:"", accept:".pdf,.docx,.doc,.jpg,.jpeg,.png,.webp,.heic,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"});
   const drop = h("label",{class:"drop", for:"doc-input"}, input, h("b",null,"Déposez un fichier Word, PDF ou une photo ici"), h("span",null,"ou cliquez pour le choisir sur l’appareil"));
   input.addEventListener("change", ()=>{ addFiles(input.files); input.value=""; });
@@ -916,15 +1121,29 @@ async function addFiles(files){
   for (const f of files) {
     const k = kindOf(f.name);
     if (!k) { bad.push(f.name); continue; }
-    const d = { id: Date.now()+"-"+Math.random().toString(36).slice(2,7), name:f.name, kind:k, size:f.size, added:new Date().toISOString(), blob:f };
+    const all = await DOCS.all();
+    const num = all.reduce((m,x)=>Math.max(m, x.num||0), 0) + 1;
+    const d = { id: Date.now()+"-"+Math.random().toString(36).slice(2,7), num, titre:autoTitre(f.name), name:f.name, kind:k, size:f.size, added:new Date().toISOString(), blob:f };
     try { await DOCS.put(d); last = d; } catch(e){ bad.push(f.name+" (espace insuffisant)"); }
   }
   await refreshDocs(bad.length ? "Non ajouté (formats acceptés : Word .docx, PDF, photo JPG ou PNG) : "+bad.join(", ") : "");
   if (last) openDoc(last);
 }
+/* Titre lisible tiré du nom du fichier ; les noms d'appareil photo deviennent « Photo du … » */
+function autoTitre(name){
+  let t = name.replace(/\.[^.]+$/,"");
+  const m = t.match(/(20\d{2})[-_]?(\d{2})[-_]?(\d{2})/);
+  if (/^(img|dsc|pxl|photo|whatsapp image|screenshot|capture|scan)/i.test(t) || /^[\d_\- ]+$/.test(t))
+    { const quoi = /\.(pdf|docx?)$/i.test(name) ? "Document" : "Photo";
+      return m ? `${quoi} du ${m[3]}/${m[2]}/${m[1]}` : `${quoi} sans titre`; }
+  t = t.replace(/[_\-]+/g," ").replace(/\s+/g," ").trim();
+  return t ? t.charAt(0).toUpperCase()+t.slice(1) : "Document sans titre";
+}
 async function refreshDocs(warn){
   const list = document.getElementById("docs-list"); if (!list) return;
-  const docs = (await DOCS.all()).sort((a,b)=>b.added.localeCompare(a.added));
+  const docs = (await DOCS.all()).sort((a,b)=>a.added.localeCompare(b.added));
+  let n = 0;
+  for (const d of docs) { n = Math.max(n+1, d.num||0); if (d.num!==n || !d.titre) { d.num = n; d.titre = d.titre || autoTitre(d.name); try { await DOCS.put(d); } catch(e){} } }
   list.innerHTML = "";
   if (warn) list.append(h("p",{class:"tts-warn", style:"margin:0"}, warn));
   if (!docs.length) { list.append(h("p",{class:"msg"},"Aucun document pour l’instant.")); return; }
@@ -937,10 +1156,20 @@ async function refreshDocs(warn){
       if (openDocId===d.id) { openDocId=null; document.getElementById("viewer").innerHTML=""; }
       refreshDocs();
     };
-    list.append(h("div",{class:"card doc-row"+(d.id===openDocId?" cur":"")},
-      h("span",{class:"badge "+(d.kind==="pdf"?"pdf":"word")}, ({pdf:"PDF",word:"WORD",photo:"PHOTO",heic:"PHOTO"})[d.kind]||"DOC"),
-      h("div",{style:"min-width:0"}, h("div",{class:"doc-name"}, d.name), h("div",{class:"doc-meta"}, `${sizeFr(d.size)} · ajouté le ${dateFr(d.added)}`)),
-      h("div",{class:"row"}, h("button",{class:"btn primary", onclick:()=>openDoc(d)},"Ouvrir"), del)));
+    const titleBox = h("div",{class:"doc-name"}, d.titre);
+    const ren = h("button",{class:"btn ghost"},"Renommer");
+    ren.onclick = () => {
+      const inp = h("input",{id:"ren-"+d.id, type:"text", class:"ren", value:d.titre, "aria-label":"Nouveau titre"});
+      const ok = async () => { const v = inp.value.trim(); if (v) { d.titre = v; await DOCS.put(d); } refreshDocs(); };
+      inp.addEventListener("keydown", e=>{ if (e.key==="Enter") ok(); if (e.key==="Escape") refreshDocs(); });
+      titleBox.replaceWith(h("div",{class:"row"}, inp, h("button",{class:"btn primary", onclick:ok},"Enregistrer")));
+      inp.focus(); inp.select();
+    };
+    list.append(h("div",{class:"card fiche-row"+(d.id===openDocId?" cur":"")},
+      h("div",{class:"num"}, h("small",null,"Ajout"), String(d.num)),
+      h("div",{style:"min-width:0"}, titleBox,
+        h("div",{class:"doc-meta"}, `${({pdf:"PDF",word:"Word",photo:"Photo",heic:"Photo HEIC"})[d.kind]||"Document"} · ${d.name} · ${sizeFr(d.size)} · ajouté le ${dateFr(d.added)}`)),
+      h("div",{class:"row"}, h("button",{class:"btn primary", onclick:()=>openDoc(d)},"Ouvrir"), ren, del)));
   });
 }
 async function openDoc(d){
@@ -949,7 +1178,7 @@ async function openDoc(d){
   const body = h("div",{class:"viewer-body"}, h("p",{class:"msg"},"Ouverture du document…"));
   const tools = h("div",{class:"row"});
   viewer.innerHTML = "";
-  viewer.append(h("div",{class:"viewer-head"}, h("h3",{style:"overflow-wrap:anywhere; min-width:0"}, d.name),
+  viewer.append(h("div",{class:"viewer-head"}, h("h3",{style:"overflow-wrap:anywhere; min-width:0"}, `Ajout ${d.num||""} : ${d.titre||d.name}`),
     h("div",{class:"row"}, tools, h("button",{class:"btn", onclick:()=>{ openDocId=null; viewer.innerHTML=""; stopSpeak(); refreshDocs(); }},"Fermer"))), body);
   viewer.scrollIntoView({behavior:"smooth", block:"start"});
   try {
