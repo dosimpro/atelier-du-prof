@@ -59,7 +59,7 @@ h1,h2,h3 { text-wrap:balance; margin:0 }
 
 /* Grille principale */
 .layout { display:grid; grid-template-columns:250px minmax(0,1fr); gap:28px; max-width:1280px; margin:0 auto; padding-block:24px 64px }
-.phases { display:flex; flex-direction:column; gap:4px; position:sticky; top:120px; align-self:start }
+.phases { display:flex; flex-direction:column; gap:4px; position:sticky; top:calc(var(--hdr, 150px) + 16px); align-self:start }
 .phases h2 { font-size:.72em; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-family:var(--f-body); margin:0 0 6px 10px }
 .ph { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; text-align:left; border:0; background:transparent; padding:9px 10px; border-radius:8px }
 .ph:hover { background:var(--surface-2) }
@@ -68,8 +68,6 @@ h1,h2,h3 { text-wrap:balance; margin:0 }
 .ph.cur { background:var(--surface) ; box-shadow:0 0 0 1px var(--line) }
 .ph.cur .n { background:var(--forest); color:var(--forest-ink); border-color:var(--forest) }
 .ph.done .n { background:var(--ok-soft); border-color:var(--ok) }
-.library { margin-top:18px; padding:12px; border:1px dashed var(--line); border-radius:10px; font-size:.85em; color:var(--muted) }
-.library b { color:var(--ink) }
 
 main { min-width:0 }
 .stage-head { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 16px; margin-bottom:18px }
@@ -151,11 +149,60 @@ textarea { width:100%; min-height:140px; padding:12px; border-radius:8px; border
 @media (max-width: 860px) {
   .layout { grid-template-columns:minmax(0,1fr); gap:16px; padding-block:16px 48px }
   .phases { position:static; flex-direction:row; overflow-x:auto; padding-bottom:6px }
-  .phases h2, .library { display:none }
+  .phases h2 { display:none }
   .ph { grid-template-columns:auto auto; flex:0 0 auto }
   .ph .d { display:none }
   .schema, .bins { grid-template-columns:minmax(0,1fr) }
   .stage-head h2 { font-size:1.6em }
+}
+
+/* Onglets, bibliothèque, documents (v1.1) */
+.tabs { display:flex; gap:4px; background:var(--surface-2); padding:4px; border-radius:10px }
+.tab { border:0; background:transparent; padding:.45em .95em; border-radius:7px; font-weight:700; color:var(--muted) }
+.tab:hover { color:var(--ink) }
+.tab[aria-current="page"] { background:var(--surface); color:var(--ink); box-shadow:0 0 0 1px var(--line) }
+.lessonbar-in { border-top:1px solid var(--line) }
+.lesson-h { font-family:var(--f-display); font-weight:400; font-size:1.2em; line-height:1.2; color:var(--forest) }
+.view { max-width:1280px; margin:0 auto; padding-block:28px 64px }
+.view-head { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:20px }
+.view-head h2 { font-family:var(--f-display); font-weight:400; font-size:2em; line-height:1.1 }
+.view-head p { margin:6px 0 0; color:var(--muted); max-width:62ch }
+.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px }
+.ccard { display:flex; flex-direction:column; gap:8px }
+.ccard h3 { font-family:var(--f-display); font-weight:400; font-size:1.35em; line-height:1.2; margin:0 }
+.ccard .meta { font-size:.85em; color:var(--muted); font-variant-numeric:tabular-nums }
+.ccard .actions { margin-top:auto; padding-top:8px; display:flex; gap:8px; flex-wrap:wrap }
+.ccard.add { border-style:dashed; background:transparent }
+.prog { font-size:.85em; color:var(--wood); font-weight:700 }
+.drop { position:relative; display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; padding:30px 16px; border:2px dashed var(--line); border-radius:12px; background:var(--surface); cursor:pointer }
+.drop:hover, .drop.over { border-color:var(--forest); background:var(--ok-soft) }
+.drop:focus-within { outline:3px solid var(--wood); outline-offset:2px }
+.drop input { position:absolute; opacity:0; width:1px; height:1px }
+.drop b { font-size:1.1em }
+.drop span { color:var(--muted); font-size:.9em }
+.docs-list { display:flex; flex-direction:column; gap:8px; margin-top:16px }
+.doc-row { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:12px; align-items:center; padding:12px 14px }
+.doc-row.cur { box-shadow:0 0 0 2px var(--forest) }
+.badge { font-size:.72em; font-weight:700; letter-spacing:.06em; padding:.3em .55em; border-radius:6px; background:var(--surface-2); border:1px solid var(--line) }
+.badge.pdf { color:var(--bad) } .badge.word { color:var(--forest) }
+.doc-name { font-weight:700; overflow-wrap:anywhere }
+.doc-meta { font-size:.82em; color:var(--muted); font-variant-numeric:tabular-nums }
+.btn.danger { border-color:var(--bad); color:var(--bad) }
+.viewer { margin-top:20px }
+.viewer-head { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px }
+.viewer-body { background:var(--surface-2); border-radius:10px; padding:12px; overflow-x:auto; display:flex; flex-direction:column; gap:12px; align-items:center; min-height:120px }
+.viewer-body canvas { max-width:100%; height:auto; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.2) }
+.doc-render { background:var(--surface); color:var(--ink); padding:24px; border-radius:8px; max-width:75ch; width:100%; line-height:1.65; font-size:1.05em; overflow-wrap:anywhere }
+.doc-render img { max-width:100%; height:auto }
+.doc-render table { border-collapse:collapse; display:block; overflow-x:auto }
+.doc-render td, .doc-render th { border:1px solid var(--line); padding:4px 8px }
+.msg { color:var(--muted); padding:16px; text-align:center }
+.foot { max-width:1280px; margin:0 auto; padding-block:8px 32px; color:var(--muted); font-size:.8em }
+@media (max-width: 860px) {
+  .topbar { position:static }
+  .doc-row { grid-template-columns:auto minmax(0,1fr) }
+  .doc-row .row { grid-column:1 / -1 }
+  .view-head h2 { font-size:1.6em }
 }
 </style>
 </head>
@@ -164,115 +211,62 @@ textarea { width:100%; min-height:140px; padding:12px; border-radius:8px; border
 <header class="topbar">
   <div class="topbar-in wrap">
     <div class="brand">
-      <span class="eyebrow" id="eyebrow"></span>
-      <h1 id="lesson-title"></h1>
+      <span class="eyebrow">Cours de français interactifs</span>
+      <h1>Classe du Conte</h1>
     </div>
-    <div class="clock">
-      <span class="time" id="clock">00:00 / 60:00</span>
-      <span class="phase-left" id="phase-left"></span>
-      <button class="btn primary" id="play">Démarrer le cours</button>
-      <button class="btn ghost" id="reset" title="Remettre le chrono à zéro">Remettre à zéro</button>
-    </div>
-    <div class="row">
-      <span class="score" id="score">Score de la classe : 0 / 0</span>
-      <button class="btn" id="answers" aria-pressed="false">Mode élève (cacher les réponses)</button>
-      <button class="btn" id="big" aria-pressed="false">Projection</button>
-    </div>
+    <nav class="tabs" aria-label="Sections">
+      <button class="tab" data-go="">Cours</button>
+      <button class="tab" data-go="documents">Mes documents</button>
+    </nav>
+    <button class="btn" id="big" aria-pressed="false">Projection</button>
   </div>
-  <div class="track wrap" id="track"></div>
+  <div id="lessonbar" hidden>
+    <div class="topbar-in wrap lessonbar-in">
+      <div class="brand">
+        <span class="eyebrow" id="eyebrow"></span>
+        <h2 class="lesson-h" id="lesson-title"></h2>
+      </div>
+      <div class="clock">
+        <span class="time" id="clock">00:00 / 60:00</span>
+        <span class="phase-left" id="phase-left"></span>
+        <button class="btn primary" id="play">Démarrer le cours</button>
+        <button class="btn ghost" id="reset" title="Remettre le chrono à zéro">Remettre à zéro</button>
+      </div>
+      <div class="row">
+        <span class="score" id="score">Score de la classe : 0 / 0</span>
+        <button class="btn" id="answers" aria-pressed="false">Mode élève (cacher les réponses)</button>
+      </div>
+    </div>
+    <div class="track wrap" id="track"></div>
+  </div>
 </header>
 
-<div class="layout wrap">
+<section id="view-lib" class="view wrap" hidden></section>
+<section id="view-docs" class="view wrap" hidden></section>
+<div id="view-lesson" class="layout wrap" hidden>
   <nav class="phases" id="phases" aria-label="Déroulé de la séance"></nav>
   <main id="stage"></main>
 </div>
+<footer class="foot wrap">Classe du Conte · application version <span id="ver"></span></footer>
 
+<script src="cours/catalogue.js"></script>
 <script>
 /* =========================================================
-   BIBLIOTHÈQUE DE COURS
-   Chaque cours = une liste de phases ; chaque phase = des blocs.
-   Types de blocs : note, support, schema, question, film, fixation,
-   colorier, completer, trier, intrus, production, liens.
-   Pour ajouter un cours, on ajoute un objet dans LESSONS.
+   CLASSE DU CONTE : le CODE de l'application.
+   Version de l'application (à changer à chaque publication du code,
+   voir CHANGELOG.md). Les cours ne sont PAS ici : ils sont dans
+   cours/<id>.js et listés dans cours/catalogue.js.
+   Types de blocs d'un cours : note, support, schema, question, film,
+   fixation, colorier, completer, trier, intrus, production, liens.
    ========================================================= */
-const LESSONS = [{
-  id: "formules-ouverture",
-  titre: "Les formules d’ouverture",
-  eyebrow: "2AM · Projet 1 « Dire et jouer un conte » · Séquence 1 · Vocabulaire",
-  phases: [
-    { titre: "Mise en situation", duree: 5, blocs: [
-      { type:"note", text:"Rappeler le schéma du conte. Faire répondre deux ou trois élèves à l’oral avant d’afficher la réponse." },
-      { type:"question", q:"Comment appelle-t-on la première partie d’un conte ?", a:"La situation initiale." },
-      { type:"schema" },
-      { type:"question", q:"Citez le titre d’un conte que vous connaissez. Comment commence-t-il ?", a:"Réponses libres : « Il était une fois… », « Il y a très longtemps… »" }
-    ]},
-    { titre: "Écoute : le conte", duree: 7, blocs: [
-      { type:"note", text:"Projeter le film et lancer la lecture. Demander aux élèves de lever la main dès qu’ils entendent l’expression qui ouvre le conte." },
-      { type:"film", titre:"Le bûcheron honnête", scenes:[
-        { m:"Situation initiale", s:"forest", t:"<mark>Il y a longtemps</mark>, dans une forêt, vivait un pauvre bûcheron. Chaque jour, il coupait du bois qu’il vendait au marché." },
-        { m:"Élément perturbateur", s:"fall", t:"Un matin, alors qu’il travaillait au bord de la rivière, sa hache lui glissa des mains et tomba au fond de l’eau." },
-        { m:"Péripétie", s:"sad", t:"Le bûcheron s’assit et pleura : sans sa hache, comment allait-il nourrir sa famille ?" },
-        { m:"Péripétie", s:"gold", t:"Soudain, un génie sortit de l’eau avec une hache en or. « Est-ce la tienne ? » « Non, ce n’est pas la mienne », répondit le bûcheron." },
-        { m:"Péripétie", s:"silver", t:"Le génie plongea de nouveau et rapporta une hache en argent. « Ce n’est pas la mienne non plus », dit l’honnête homme." },
-        { m:"Dénouement", s:"iron", t:"Enfin, il remonta une vieille hache en fer. « Oui, c’est la mienne ! » s’écria le bûcheron, tout heureux." },
-        { m:"Situation finale", s:"end", t:"Pour récompenser son honnêteté, le génie lui offrit les trois haches. Depuis ce jour, le bûcheron vécut heureux avec sa famille." }
-      ]},
-      { type:"question", q:"Par quelle expression le conte commence-t-il ?", a:"« Il y a longtemps »." },
-      { type:"question", q:"Quelle qualité du bûcheron est récompensée ?", choices:["Sa force","Son honnêteté","Sa richesse"], correct:1, a:"Son honnêteté." }
-    ]},
-    { titre: "Observation", duree: 8, blocs: [
-      { type:"support", titre:"Support (manuel p. 13) : Un bûcheron honnête", html:"Il y a longtemps, dans une forêt, un pauvre bûcheron coupait du bois qu’il vendait au marché." },
-      { type:"question", q:"1) Le texte ci-dessus est extrait d’…", choices:["une fable","un conte","une légende"], correct:1, a:"Un conte." },
-      { type:"question", q:"2) Qui est le personnage principal de cette histoire ?", choices:["Le marchand","Le bûcheron","Le génie"], correct:1, a:"Le bûcheron." },
-      { type:"question", q:"3) Que faisait le bûcheron dans la forêt ?", a:"Il coupait du bois qu’il vendait au marché." }
-    ]},
-    { titre: "Analyse", duree: 12, blocs: [
-      { type:"support", titre:"Support", html:"<mark>Il y a longtemps</mark>, dans une forêt, un pauvre bûcheron coupait du bois qu’il vendait au marché." },
-      { type:"question", q:"1) Que représente la première phrase du texte ?", a:"C’est la situation initiale." },
-      { type:"question", q:"2) Par quelle expression est-elle introduite ?", a:"« Il y a longtemps »." },
-      { type:"question", q:"3) Cette expression s’appelle :", choices:["un connecteur d’énumération","une formule d’ouverture","une formule qui introduit la situation finale"], correct:1, a:"Une formule d’ouverture." },
-      { type:"question", q:"4) Par quels autres mots ou expressions peut-on la remplacer ?", a:"Il était une fois, il y a bien longtemps, autrefois, jadis, dans le vieux temps, en des temps très anciens…" },
-      { type:"question", q:"5) Quelle information apportent les formules d’ouverture ?", choices:["Où se passe l’histoire ?","Quand se passe l’histoire ?","Qui raconte l’histoire ?"], correct:1, a:"Elles situent l’histoire dans le temps : elles répondent à la question « Quand ? »." }
-    ]},
-    { titre: "Fixation", duree: 8, blocs: [
-      { type:"fixation", rule:"Pour introduire le conte et situer l’histoire dans le temps, on emploie <b>une formule d’ouverture</b>.",
-        items:["Il était une fois…","Il y a longtemps…","Il y a bien longtemps…","Jadis…","Autrefois…","En des temps anciens…","Dans un passé lointain…","Dans le vieux temps…"] },
-      { type:"note", text:"Faire répéter chaque formule à voix haute (clic sur une formule pour l’écouter), puis faire recopier la règle dans les cahiers." }
-    ]},
-    { titre: "Évaluation", duree: 15, blocs: [
-      { type:"colorier", titre:"Activité 1 : Colorie les formules d’ouverture.",
-        items:[["Il y a bien longtemps",1],["finalement",0],["autrefois",1],["soudain",0],["ainsi",0],["jadis",1],["tout à coup",0],["il y avait une fois",1],["ensuite",0],["dans un passé lointain",1]] },
-      { type:"completer", titre:"Activité 2 : Complète les situations initiales par une formule d’ouverture.",
-        phrases:["___, dans un royaume oublié de tous, vivait un roi juste et bon.",
-                 "___, vivaient deux frères : l’un était riche et l’autre était pauvre.",
-                 "___, une magicienne habitait dans une grande maison.",
-                 "___, une belle fille qui s’appelait Loundja vivait avec ses parents et sa grand-mère dans un petit village."],
-        options:["Il était une fois","Il y a très longtemps","Autrefois","Jadis","Soudain","Enfin","Ensuite"],
-        good:["Il était une fois","Il y a très longtemps","Autrefois","Jadis"] },
-      { type:"trier", titre:"Activité 3 (nouvelle) : Classe chaque expression dans la bonne boîte.",
-        bins:["Formule d’ouverture","Formule de clôture","Connecteur du récit"],
-        items:[["Il était une fois",0],["Ils vécurent heureux pour toujours",1],["Soudain",2],["Jadis",0],["Depuis ce jour",1],["Tout à coup",2],["Autrefois",0],["Et mon conte est fini",1],["Ensuite",2]] },
-      { type:"intrus", titre:"Activité 4 (nouvelle) : Trouve l’intrus dans chaque liste.",
-        rows:[ {items:["Jadis","Autrefois","Soudain","Il était une fois"], i:2, why:"« Soudain » annonce un événement brusque, ce n’est pas une formule d’ouverture."},
-               {items:["Il y a longtemps","Enfin","Dans un passé lointain","En des temps anciens"], i:1, why:"« Enfin » marque la fin d’une suite d’actions."},
-               {items:["Il était une fois","Ils vécurent heureux","Il y a bien longtemps","Jadis"], i:1, why:"« Ils vécurent heureux » est une formule de clôture."} ] }
-    ]},
-    { titre: "Production écrite", duree: 5, blocs: [
-      { type:"production", consigne:"À ton tour, rédige une courte situation initiale du conte « Blanche-Neige et les sept nains » en employant une formule d’ouverture.",
-        exemple:"Il y a bien longtemps, dans un grand palais, vivait une belle fille qui s’appelait Blanche-Neige, car elle était blanche comme la neige. Elle vivait avec son père et sa belle-mère." },
-      { type:"liens", titre:"Pour aller plus loin (à la maison)", items:[
-        ["Écouter des contes lus (France Culture, contes et histoires)","https://www.radiofrance.fr/franceculture/podcasts/serie-contes-et-legendes"],
-        ["Vidéos : « Le bûcheron honnête » (recherche YouTube)","https://www.youtube.com/results?search_query=le+b%C3%BBcheron+honn%C3%AAte+conte"] ] }
-    ]}
-  ]
-}];
+const APP_VERSION = "1.1.0";
+window.COURS = window.COURS || [];
 
 /* ============ État ============ */
-const L = LESSONS[0];
-const total = L.phases.reduce((s,p)=>s+p.duree,0);
-const S = { phase:0, running:false, spent:L.phases.map(()=>0), scores:{}, big:false, hide:false, rate:0.9 };
-try { const saved = JSON.parse(localStorage.getItem("classe-conte:"+L.id)||"null"); if (saved) { S.phase = Math.min(saved.phase||0, L.phases.length-1); S.spent = saved.spent?.length===L.phases.length ? saved.spent : S.spent; } } catch(e){}
-function save(){ try { localStorage.setItem("classe-conte:"+L.id, JSON.stringify({phase:S.phase, spent:S.spent})) } catch(e){} }
+let L = null, S = null, total = 0;
+const PREF = { big:false, hide:false, rate:0.9 };
+function save(){ if (!L || !S) return; try { localStorage.setItem("classe-conte:"+L.id, JSON.stringify({phase:S.phase, spent:S.spent})) } catch(e){} }
+function readSaved(id){ try { return JSON.parse(localStorage.getItem("classe-conte:"+id)||"null") } catch(e){ return null } }
 
 /* ============ Utilitaires ============ */
 function h(tag, props, ...kids){
@@ -300,7 +294,7 @@ function speak(text, onend){
   if (!TTS) { if (onend) setTimeout(onend, Math.max(4000, text.length*60)); return; }
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(strip(text));
-  u.lang = "fr-FR"; if (frVoice) u.voice = frVoice; u.rate = S.rate;
+  u.lang = "fr-FR"; if (frVoice) u.voice = frVoice; u.rate = PREF.rate;
   if (onend) u.onend = onend;
   speechSynthesis.speak(u);
 }
@@ -530,14 +524,13 @@ const R = {
     h("ul",{style:"margin:0; padding-left:1.2em"}, b.items.map(([t,u])=>h("li",null,h("a",{href:u, target:"_blank", rel:"noopener", style:"color:var(--forest)"},t)))))
 };
 
-/* ============ Rendu de la page ============ */
+/* ============ Séance : rendu ============ */
 function renderNav(){
   const nav = document.getElementById("phases");
   nav.innerHTML = "";
   nav.append(h("h2",null,"Déroulé · "+total+" min"));
   L.phases.forEach((p,i)=> nav.append(h("button",{class:"ph"+(i===S.phase?" cur":"")+(i<S.phase?" done":""), onclick:()=>go(i)},
     h("span",{class:"n"}, i+1), h("span",null,p.titre), h("span",{class:"d"}, p.duree+" min"))));
-  nav.append(h("div",{class:"library", html:"<b>Bibliothèque de cours</b><br>Ce cours : formules d’ouverture.<br>Pour ajouter un cours, envoyez à Claude les photos de la fiche : il sera ajouté ici avec ses propres exercices, son conte narré et son chrono."}));
   const tr = document.getElementById("track");
   tr.innerHTML = "";
   L.phases.forEach((p,i)=> tr.append(h("span",{style:`flex:${p.duree}`, class:i===S.phase?"cur":"", title:p.titre}, h("i",{style:`width:${Math.min(100, S.spent[i]/(p.duree*60)*100)}%`}))));
@@ -551,16 +544,17 @@ function renderStage(){
     h("h2",null,p.titre),
     h("div",{class:"row"},
       h("span",{class:"meta"},`Étape ${S.phase+1} sur ${L.phases.length} · ${p.duree} min prévues`),
-      TTS ? h("label",{class:"speed", for:"rate"},"Vitesse de la voix", h("input",{id:"rate", type:"range", min:"0.6", max:"1.2", step:"0.1", value:String(S.rate), oninput:e=>{S.rate=+e.target.value}})) : null)));
+      TTS ? h("label",{class:"speed", for:"rate"},"Vitesse de la voix", h("input",{id:"rate", type:"range", min:"0.6", max:"1.2", step:"0.1", value:String(PREF.rate), oninput:e=>{PREF.rate=+e.target.value}})) : null)));
   const blocks = h("div",{class:"blocks"});
-  p.blocs.forEach((b,k)=> blocks.append(R[b.type](b, `p${S.phase}b${k}`)));
+  p.blocs.forEach((b,k)=> blocks.append(R[b.type] ? R[b.type](b, `p${S.phase}b${k}`) : h("div",{class:"card"},"Bloc inconnu : "+b.type)));
   st.append(blocks);
   st.append(h("div",{class:"pager"},
-    S.phase>0 ? h("button",{class:"btn", onclick:()=>go(S.phase-1)},"‹ "+L.phases[S.phase-1].titre) : h("span"),
+    S.phase>0 ? h("button",{class:"btn", onclick:()=>go(S.phase-1)},"‹ "+L.phases[S.phase-1].titre) : h("button",{class:"btn", onclick:()=>{location.hash=""}},"‹ Tous les cours"),
     S.phase<L.phases.length-1 ? h("button",{class:"btn primary", onclick:()=>go(S.phase+1)}, L.phases[S.phase+1].titre+" ›") : h("span",{class:"meta"},"Fin de la séance")));
 }
 function go(i){ S.phase=i; save(); renderNav(); renderStage(); renderClock(); window.scrollTo({top:0, behavior:"smooth"}); }
 function renderClock(){
+  if (!S) return;
   const el = S.spent.reduce((a,b)=>a+b,0);
   document.getElementById("clock").textContent = `${fmt(el)} / ${fmt(total*60)}`;
   const left = L.phases[S.phase].duree*60 - S.spent[S.phase];
@@ -569,17 +563,211 @@ function renderClock(){
   pl.classList.toggle("over", left<0);
   [...document.querySelectorAll("#track span i")].forEach((x,i)=> x.style.width = Math.min(100, S.spent[i]/(L.phases[i].duree*60)*100)+"%");
 }
-
-document.getElementById("lesson-title").textContent = L.titre;
-document.getElementById("eyebrow").textContent = L.eyebrow;
 const playB = document.getElementById("play");
-playB.onclick = () => { S.running=!S.running; playB.textContent = S.running ? "Pause" : (S.spent.some(Boolean)?"Reprendre":"Démarrer le cours"); };
-document.getElementById("reset").onclick = () => { S.spent = S.spent.map(()=>0); S.running=false; playB.textContent="Démarrer le cours"; save(); renderClock(); };
-document.getElementById("big").onclick = e => { S.big=!S.big; document.body.classList.toggle("big",S.big); e.currentTarget.setAttribute("aria-pressed",S.big); };
-document.getElementById("answers").onclick = e => { S.hide=!S.hide; document.body.classList.toggle("answers-hidden",S.hide); e.currentTarget.setAttribute("aria-pressed",S.hide); };
-setInterval(()=>{ if(!S.running) return; S.spent[S.phase]++; renderClock(); if (S.spent[S.phase]%10===0) save(); }, 1000);
-if (S.spent.some(Boolean)) playB.textContent = "Reprendre";
-renderNav(); renderStage(); renderClock(); renderScore();
+function playLabel(){ playB.textContent = S.running ? "Pause" : (S.spent.some(Boolean) ? "Reprendre" : "Démarrer le cours"); }
+function openLesson(id){
+  const c = COURS.find(x=>x.id===id);
+  if (!c) { location.hash = ""; return; }
+  if (L && L.id !== id) { save(); }
+  if (!L || L.id !== id) {
+    L = c; total = L.phases.reduce((s,p)=>s+p.duree,0);
+    S = { phase:0, running:false, spent:L.phases.map(()=>0), scores:{} };
+    const saved = readSaved(L.id);
+    if (saved) { S.phase = Math.min(saved.phase||0, L.phases.length-1); if (saved.spent?.length===L.phases.length) S.spent = saved.spent; }
+  }
+  document.getElementById("lesson-title").textContent = L.titre;
+  document.getElementById("eyebrow").textContent = L.eyebrow || L.niveau || "";
+  showView("lesson");
+  renderNav(); renderStage(); renderClock(); renderScore(); playLabel();
+}
+playB.onclick = () => { S.running = !S.running; playLabel(); };
+document.getElementById("reset").onclick = () => { S.spent = S.spent.map(()=>0); S.running=false; playLabel(); save(); renderClock(); renderNav(); };
+document.getElementById("answers").onclick = e => { PREF.hide=!PREF.hide; document.body.classList.toggle("answers-hidden",PREF.hide); e.currentTarget.setAttribute("aria-pressed",PREF.hide); };
+document.getElementById("big").onclick = e => { PREF.big=!PREF.big; document.body.classList.toggle("big",PREF.big); e.currentTarget.setAttribute("aria-pressed",PREF.big); measure(); };
+setInterval(()=>{ if(!S || !S.running) return; S.spent[S.phase]++; renderClock(); if (S.spent[S.phase]%10===0) save(); }, 1000);
+
+/* ============ Navigation entre les vues ============ */
+function measure(){ document.documentElement.style.setProperty("--hdr", document.querySelector(".topbar").offsetHeight+"px"); }
+window.addEventListener("resize", measure);
+function showView(v){
+  document.getElementById("view-lib").hidden = v!=="lib";
+  document.getElementById("view-docs").hidden = v!=="docs";
+  document.getElementById("view-lesson").hidden = v!=="lesson";
+  document.getElementById("lessonbar").hidden = v!=="lesson";
+  document.querySelectorAll(".tab").forEach(t=>{ const on = (t.dataset.go==="documents") === (v==="docs"); if (on) t.setAttribute("aria-current","page"); else t.removeAttribute("aria-current"); });
+  if (v!=="lesson") stopSpeak();
+  measure();
+}
+document.querySelectorAll(".tab").forEach(t=> t.onclick = () => { location.hash = t.dataset.go; });
+function route(){
+  const hs = decodeURIComponent(location.hash.slice(1));
+  if (hs==="documents") { save(); showView("docs"); renderDocs(); }
+  else if (hs.startsWith("cours-")) openLesson(hs.slice(6));
+  else { save(); showView("lib"); renderLib(); }
+}
+window.addEventListener("hashchange", route);
+
+/* ============ Bibliothèque de cours ============ */
+let loadFails = [];
+function loadScript(src){ return new Promise(res=>{ const s=document.createElement("script"); s.src=src; s.onload=()=>res(true); s.onerror=()=>res(false); document.head.append(s); }); }
+async function loadCourses(){ for (const id of (window.CATALOGUE||[])) { if (!(await loadScript(`cours/${id}.js`))) loadFails.push(id); } }
+const dateFr = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString("fr-FR"); };
+function renderLib(){
+  const v = document.getElementById("view-lib");
+  v.innerHTML = "";
+  v.append(h("div",{class:"view-head"},
+    h("div",null, h("h2",null,"Bibliothèque de cours"),
+      h("p",null, COURS.length ? `${COURS.length} cours disponible${COURS.length>1?"s":""}. Chaque cours est une séance complète : chrono, conte narré, questions et exercices corrigés.` : "Aucun cours pour l’instant."))));
+  const grid = h("div",{class:"grid"});
+  COURS.forEach(c=>{
+    const tot = c.phases.reduce((s,p)=>s+p.duree,0);
+    const sv = readSaved(c.id);
+    const started = sv && (sv.phase>0 || (sv.spent||[]).some(Boolean));
+    grid.append(h("article",{class:"card ccard"},
+      h("span",{class:"label"}, c.niveau || "Cours"),
+      h("h3",null,c.titre),
+      h("div",{class:"meta"}, `${c.phases.length} étapes · ${tot} min` + (c.ajoute ? ` · ajouté le ${dateFr(c.ajoute)}` : "")),
+      started ? h("div",{class:"prog"}, `En cours : étape ${sv.phase+1} sur ${c.phases.length}`) : null,
+      h("div",{class:"actions"}, h("button",{class:"btn primary", onclick:()=>{ location.hash = "cours-"+c.id }}, started ? "Reprendre le cours" : "Ouvrir le cours"))));
+  });
+  grid.append(h("article",{class:"card ccard add"},
+    h("span",{class:"label"},"Nouveau cours"),
+    h("h3",null,"Ajouter un cours"),
+    h("p",{style:"margin:0; color:var(--muted)"},"Déposez la fiche (Word ou PDF) dans « Mes documents » pour l’afficher tout de suite. Elle sera ensuite transformée en séance interactive."),
+    h("div",{class:"actions"}, h("button",{class:"btn", onclick:()=>{ location.hash="documents" }},"Aller à Mes documents"))));
+  v.append(grid);
+  if (loadFails.length) v.append(h("p",{class:"tts-warn", style:"margin-top:16px"}, "Cours introuvable(s) : "+loadFails.join(", ")+". Vérifiez le dossier cours/."));
+}
+
+/* ============ Mes documents (Word / PDF, gardés sur cet appareil) ============ */
+const LIBS = {
+  pdf: { src:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", g:"pdfjsLib" },
+  word:{ src:"https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js", g:"mammoth" }
+};
+async function needLib(k){
+  const l = LIBS[k];
+  if (!window[l.g]) { await loadScript(l.src); if (!window[l.g]) throw new Error("lib"); }
+  if (k==="pdf") window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  return window[l.g];
+}
+const DOCS = {
+  db:null, mem:[], ok:true,
+  async open(){
+    if (this.db || !this.ok) return this.db;
+    try { this.db = await new Promise((res,rej)=>{ const r = indexedDB.open("classe-conte-docs",1); r.onupgradeneeded = ()=>r.result.createObjectStore("docs",{keyPath:"id"}); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+    catch(e){ this.ok = false; }
+    return this.db;
+  },
+  async all(){ const db = await this.open(); if (!db) return this.mem.slice();
+    return new Promise(res=>{ try { const q = db.transaction("docs").objectStore("docs").getAll(); q.onsuccess=()=>res(q.result); q.onerror=()=>res([]); } catch(e){ res([]) } }); },
+  async put(d){ const db = await this.open(); if (!db) { this.mem.push(d); return; }
+    return new Promise((res,rej)=>{ const t = db.transaction("docs","readwrite"); t.objectStore("docs").put(d); t.oncomplete=res; t.onerror=()=>rej(t.error); }); },
+  async del(id){ const db = await this.open(); if (!db) { this.mem = this.mem.filter(d=>d.id!==id); return; }
+    return new Promise(res=>{ const t = db.transaction("docs","readwrite"); t.objectStore("docs").delete(id); t.oncomplete=res; t.onerror=res; }); }
+};
+let openDocId = null;
+const sizeFr = n => n<1024*1024 ? Math.max(1,Math.round(n/1024))+" Ko" : (n/1024/1024).toFixed(1).replace(".",",")+" Mo";
+const kindOf = name => { const e = (name.split(".").pop()||"").toLowerCase(); return e==="pdf" ? "pdf" : e==="docx" ? "word" : e==="doc" ? "doc" : null; };
+
+async function renderDocs(){
+  const v = document.getElementById("view-docs");
+  v.innerHTML = "";
+  await DOCS.open();
+  v.append(h("div",{class:"view-head"}, h("div",null, h("h2",null,"Mes documents"),
+    h("p",null,"Ajoutez vos fiches de cours en Word (.docx) ou en PDF pour les afficher en classe. Elles restent sur cet appareil, dans ce navigateur."))));
+  const input = h("input",{id:"doc-input", type:"file", multiple:"", accept:".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+  const drop = h("label",{class:"drop", for:"doc-input"}, input, h("b",null,"Déposez un fichier Word ou PDF ici"), h("span",null,"ou cliquez pour le choisir sur l’appareil"));
+  input.addEventListener("change", ()=>{ addFiles(input.files); input.value=""; });
+  drop.addEventListener("dragover", e=>{ e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", ()=>drop.classList.remove("over"));
+  drop.addEventListener("drop", e=>{ e.preventDefault(); drop.classList.remove("over"); addFiles(e.dataTransfer.files); });
+  v.append(drop);
+  v.append(h("div",{class:"card note", style:"margin-top:16px"},
+    h("span",{class:"label"},"Bon à savoir"),
+    h("div",null,"Un document ajouté ici n’est visible que sur cet appareil. Pour qu’il devienne un cours interactif disponible pour tous (chrono, exercices corrigés, conte narré), transmettez le même fichier au responsable de l’application."),
+    DOCS.ok ? null : h("div",{style:"margin-top:6px; font-weight:700"},"Ce navigateur ne permet pas de garder les fichiers : ils disparaîtront à la fermeture de la page.")));
+  v.append(h("div",{class:"docs-list", id:"docs-list"}));
+  v.append(h("section",{class:"viewer", id:"viewer"}));
+  await refreshDocs();
+  if (openDocId) { const d = (await DOCS.all()).find(x=>x.id===openDocId); if (d) openDoc(d); }
+}
+async function addFiles(files){
+  let last = null; const bad = [];
+  for (const f of files) {
+    const k = kindOf(f.name);
+    if (!k) { bad.push(f.name); continue; }
+    const d = { id: Date.now()+"-"+Math.random().toString(36).slice(2,7), name:f.name, kind:k, size:f.size, added:new Date().toISOString(), blob:f };
+    try { await DOCS.put(d); last = d; } catch(e){ bad.push(f.name+" (espace insuffisant)"); }
+  }
+  await refreshDocs(bad.length ? "Non ajouté (seuls Word .docx et PDF sont acceptés) : "+bad.join(", ") : "");
+  if (last) openDoc(last);
+}
+async function refreshDocs(warn){
+  const list = document.getElementById("docs-list"); if (!list) return;
+  const docs = (await DOCS.all()).sort((a,b)=>b.added.localeCompare(a.added));
+  list.innerHTML = "";
+  if (warn) list.append(h("p",{class:"tts-warn", style:"margin:0"}, warn));
+  if (!docs.length) { list.append(h("p",{class:"msg"},"Aucun document pour l’instant.")); return; }
+  docs.forEach(d=>{
+    const del = h("button",{class:"btn ghost"},"Supprimer");
+    let armed = null;
+    del.onclick = async () => {
+      if (!armed) { del.textContent = "Confirmer la suppression"; del.classList.add("danger"); armed = setTimeout(()=>{ armed=null; del.textContent="Supprimer"; del.classList.remove("danger"); }, 4000); return; }
+      clearTimeout(armed); await DOCS.del(d.id);
+      if (openDocId===d.id) { openDocId=null; document.getElementById("viewer").innerHTML=""; }
+      refreshDocs();
+    };
+    list.append(h("div",{class:"card doc-row"+(d.id===openDocId?" cur":"")},
+      h("span",{class:"badge "+(d.kind==="pdf"?"pdf":"word")}, d.kind==="pdf"?"PDF":"WORD"),
+      h("div",{style:"min-width:0"}, h("div",{class:"doc-name"}, d.name), h("div",{class:"doc-meta"}, `${sizeFr(d.size)} · ajouté le ${dateFr(d.added)}`)),
+      h("div",{class:"row"}, h("button",{class:"btn primary", onclick:()=>openDoc(d)},"Ouvrir"), del)));
+  });
+}
+async function openDoc(d){
+  openDocId = d.id; refreshDocs();
+  const viewer = document.getElementById("viewer");
+  const body = h("div",{class:"viewer-body"}, h("p",{class:"msg"},"Ouverture du document…"));
+  const tools = h("div",{class:"row"});
+  viewer.innerHTML = "";
+  viewer.append(h("div",{class:"viewer-head"}, h("h3",{style:"overflow-wrap:anywhere; min-width:0"}, d.name),
+    h("div",{class:"row"}, tools, h("button",{class:"btn", onclick:()=>{ openDocId=null; viewer.innerHTML=""; stopSpeak(); refreshDocs(); }},"Fermer"))), body);
+  viewer.scrollIntoView({behavior:"smooth", block:"start"});
+  try {
+    if (d.kind==="doc") { body.innerHTML = ""; body.append(h("p",{class:"msg"},"Ce fichier est au format Word ancien (.doc). Ouvrez-le dans Word et enregistrez-le en .docx ou en PDF, puis ajoutez-le de nouveau.")); return; }
+    const buf = await d.blob.arrayBuffer();
+    if (d.kind==="word") {
+      const mammoth = await needLib("word");
+      const out = await mammoth.convertToHtml({arrayBuffer:buf});
+      const doc = h("div",{class:"doc-render", html:out.value || "<p>(document vide)</p>"});
+      body.innerHTML = ""; body.append(doc);
+      if (TTS) tools.append(h("button",{class:"btn", onclick:()=>speak(doc.textContent)},"Lire à voix haute"), h("button",{class:"btn ghost", onclick:stopSpeak},"Arrêter"));
+    } else {
+      const lib = await needLib("pdf");
+      const pdf = await lib.getDocument({data:new Uint8Array(buf)}).promise;
+      body.innerHTML = "";
+      const max = Math.min(pdf.numPages, 60);
+      const w = Math.min(body.clientWidth - 24, 900), dpr = Math.min(window.devicePixelRatio||1, 2);
+      for (let i=1; i<=max; i++) {
+        if (openDocId!==d.id) return;
+        const page = await pdf.getPage(i);
+        const scale = w / page.getViewport({scale:1}).width;
+        const vp = page.getViewport({scale:scale*dpr});
+        const cv = h("canvas",{width:String(Math.floor(vp.width)), height:String(Math.floor(vp.height)), "aria-label":`Page ${i} sur ${pdf.numPages}`});
+        cv.style.width = Math.floor(vp.width/dpr)+"px";
+        body.append(cv);
+        await page.render({canvasContext:cv.getContext("2d"), viewport:vp}).promise;
+      }
+      if (pdf.numPages>max) body.append(h("p",{class:"msg"},`Seules les ${max} premières pages sont affichées.`));
+    }
+  } catch(e) {
+    body.innerHTML = "";
+    body.append(h("p",{class:"msg"},"Impossible d’afficher ce fichier. La première ouverture demande une connexion internet ; si elle est active, le fichier est peut-être abîmé ou protégé par mot de passe."));
+  }
+}
+
+/* ============ Démarrage ============ */
+document.getElementById("ver").textContent = APP_VERSION;
+loadCourses().then(route);
 </script>
 </body>
 </html>
